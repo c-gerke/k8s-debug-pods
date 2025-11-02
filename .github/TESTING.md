@@ -14,7 +14,7 @@ Tests run automatically on every pull request and push to main via GitHub Action
 
 ## Test Coverage by Image
 
-### network-debug
+### network/debug
 
 Tests all network troubleshooting tools:
 
@@ -30,7 +30,7 @@ Tests all network troubleshooting tools:
 - `nc` (netcat) - Network utility
 - `telnet` - TCP connection testing
 
-### postgresql-debug-13, postgresql-debug-14, postgresql-15
+### postgresql/13, postgresql/14, postgresql/15
 
 Tests PostgreSQL client tools and verifies correct version:
 
@@ -43,9 +43,9 @@ Tests PostgreSQL client tools and verifies correct version:
 - `curl` - HTTP client
 - `wget` - File downloader
 
-**Version Verification:** Tests ensure the correct major version is installed (e.g., postgresql-15 must have PostgreSQL 15.x)
+**Version Verification:** Tests ensure the correct major version is installed (e.g., postgresql/15 must have PostgreSQL 15.x)
 
-### ruby-debug-3.3, ruby-3.4
+### ruby/3.3, ruby/3.4
 
 Tests Ruby development tools and verifies correct version:
 
@@ -59,9 +59,9 @@ Tests Ruby development tools and verifies correct version:
 - `vim` - Text editor
 - `gcc` - C compiler (for native gem extensions)
 
-**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., ruby-3.4 must have Ruby 3.4.x)
+**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., ruby/3.4 must have Ruby 3.4.x)
 
-### mysql-debug-8.0, mysql-8.4
+### mysql/8.0, mysql/8.4
 
 Tests MySQL client tools and verifies correct version:
 
@@ -71,7 +71,7 @@ Tests MySQL client tools and verifies correct version:
 - `curl` - HTTP client
 - `wget` - File downloader
 
-**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., mysql-8.0 must have MySQL 8.0.x)
+**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., mysql/8.0 must have MySQL 8.0.x)
 
 ## Adding Tests for New Images
 
@@ -132,12 +132,12 @@ If tests fail:
 To test an image locally before pushing:
 
 ```bash
-cd images/your-image-name
-docker build --platform linux/amd64 -t your-image:test .
+cd images/category/version
+docker build --platform linux/amd64 -t category-version:test .
 
 # Run your tests
-docker run --rm your-image:test bash --version
-docker run --rm your-image:test your-tool --version
+docker run --rm category-version:test bash --version
+docker run --rm category-version:test your-tool --version
 # ... additional tests
 ```
 

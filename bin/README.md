@@ -15,32 +15,32 @@ Deploy a debug pod with intelligent resource allocation based on namespace quota
 
 **Basic Usage:**
 ```bash
-./bin/deploy-debug-pod network-debug
+./bin/deploy-debug-pod network/debug
 ```
 
 **With Context and Namespace:**
 ```bash
-./bin/deploy-debug-pod -c wc-beta-px -n example-rails-app-pr1110 network-debug
+./bin/deploy-debug-pod -c wc-beta-px -n example-rails-app-pr1110 mysql/8.0
 ```
 
 **Auto-exec into Pod:**
 ```bash
-./bin/deploy-debug-pod --auto network-debug
+./bin/deploy-debug-pod --auto postgresql/15
 ```
 
 **Override Resources:**
 ```bash
-./bin/deploy-debug-pod -m 512Mi -e 512Mi network-debug
+./bin/deploy-debug-pod -m 512Mi -e 512Mi ruby/3.4
 ```
 
 **Force Recreation of Existing Pod:**
 ```bash
-./bin/deploy-debug-pod --force network-debug
+./bin/deploy-debug-pod --force network/debug
 ```
 
 **Exec into Existing Pod (if exists):**
 ```bash
-./bin/deploy-debug-pod --auto network-debug
+./bin/deploy-debug-pod --auto network/debug
 ```
 
 **List Available Pod Types:**
@@ -99,29 +99,30 @@ The deployment script intelligently calculates resource allocations:
 
 The script uses YAML manifests in `pods/` directory as templates:
 
-- Each pod type has its own manifest file
+- Each pod type has its own manifest file organized by category/version
 - Script uses `yq` to modify resources dynamically
 - Preserves volumes, commands, and other custom configurations
-- Easy to add new pod types - just create a new YAML file
+- Easy to add new pod types - just create a new YAML file in the appropriate category folder
 - **Safe by default:** Won't recreate existing pods unless `--force` is used
 - Use `--auto` to exec into existing pod or create if missing
 
 ## Adding New Pod Types
 
-1. Create a new manifest in `pods/`:
+1. Create a new manifest in `pods/` organized by category:
 ```bash
-cp pods/network-debug.yml pods/database-debug.yml
+mkdir -p pods/redis
+cp pods/network/debug.yml pods/redis/7.0.yml
 ```
 
 2. Customize the manifest (image, volumes, commands, etc.)
 
-3. Deploy using the script:
+3. Deploy using the script with category/version format:
 ```bash
-./bin/deploy-debug-pod database-debug
+./bin/deploy-debug-pod redis/7.0
 ```
 
 The script automatically:
-- Finds the matching YAML file
+- Finds the matching YAML file in the category folder
 - Calculates appropriate resources
 - Applies customizations
 - Deploys to your cluster
@@ -131,22 +132,22 @@ The script automatically:
 ### Quick Network Debugging
 ```bash
 # Deploy and exec in one command
-./bin/deploy-debug-pod --auto -n production network-debug
+./bin/deploy-debug-pod --auto -n production network/debug
 ```
 
 ### Custom Resources for Large Namespace
 ```bash
 # Override with 1GB memory and storage
-./bin/deploy-debug-pod -m 1Gi -e 1Gi -n large-namespace network-debug
+./bin/deploy-debug-pod -m 1Gi -e 1Gi -n large-namespace postgresql/15
 ```
 
 ### Multiple Contexts
 ```bash
 # Deploy to staging
-./bin/deploy-debug-pod -c staging -n my-app network-debug
+./bin/deploy-debug-pod -c staging -n my-app mysql/8.0
 
 # Deploy to production
-./bin/deploy-debug-pod -c production -n my-app network-debug
+./bin/deploy-debug-pod -c production -n my-app ruby/3.4
 ```
 
 ### Cleanup After Debugging

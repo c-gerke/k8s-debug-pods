@@ -8,8 +8,8 @@ This repository maintains purpose-built container images and Kubernetes pod mani
 
 ### Image Structure
 - **Base image**: Always use `debian:bookworm-slim` for consistency and small footprint
-- **Organization**: Each debugging tool set lives in `images/<purpose>/Dockerfile`
-- **Registry**: All images push to `ghcr.io/c-gerke/k8s-pods/<purpose>:latest`
+- **Organization**: Images organized as `images/<category>/<version>/Dockerfile` (e.g., `images/mysql/8.0/Dockerfile`)
+- **Registry**: All images push to `ghcr.io/c-gerke/k8s-pods/<category>-<version>:latest`
 - **Platform**: Build for `linux/amd64` only (no arm64)
 
 ### Dockerfile Best Practices
@@ -80,19 +80,19 @@ Every image is tested before being pushed to the registry to ensure quality and 
 **Image-specific test requirements**:
 
 ```bash
-# network-debug: Test all network tools
+# network/debug: Test all network tools
 curl --version, wget --version, dig -v, nslookup, ping -V,
 netstat --version, ss --version, ip -V, nc, telnet
 
-# postgresql-13/14/15: Test PostgreSQL tools + version verification
+# postgresql/13, postgresql/14, postgresql/15: Test PostgreSQL tools + version verification
 psql --version (verify 13.x/14.x/15.x), pg_dump, pg_restore,
 pg_isready, createdb, dropdb, curl, wget
 
-# ruby-3.3/3.4: Test Ruby tools + version verification
+# ruby/3.3, ruby/3.4: Test Ruby tools + version verification
 ruby --version (verify 3.3.x/3.4.x), irb, gem, bundle,
 git, curl, wget, vim, gcc (for native gems)
 
-# mysql-8.0/8.4: Test MySQL tools + version verification
+# mysql/8.0, mysql/8.4: Test MySQL tools + version verification
 mysql --version (verify 8.0.x/8.4.x), mysqldump, mysqladmin, curl, wget
 ```
 
@@ -117,16 +117,17 @@ See [.github/TESTING.md](TESTING.md) for detailed documentation.
 
 ## Adding New Debug Images
 
-1. Create directory structure:
+1. Create directory structure organized by category and version:
 ```bash
-mkdir -p images/new-debugger
+mkdir -p images/redis/7.0
+mkdir -p pods/redis
 ```
 
-2. Add Dockerfile following best practices above
+2. Add Dockerfile following best practices above in `images/redis/7.0/Dockerfile`
 
 3. Create pod manifest template in `pods/`:
 ```bash
-cp pods/network-debug.yml pods/new-debugger.yml
+cp pods/network/debug.yml pods/redis/7.0.yml
 # Edit to customize image, volumes, env vars, etc.
 ```
 
@@ -155,14 +156,14 @@ your-new-image)
 
 **CRITICAL**: Every new image MUST have tests added to the workflow. Images without tests will only get basic bash verification. See [.github/TESTING.md](TESTING.md) for test writing guidelines.
 
-**Note**: Pod manifest filename should match the image name (e.g., `network-debug.yml` for `network-debug` image) so deployment scripts can find it automatically.
+**Note**: Pod manifests are organized by category/version (e.g., `pods/redis/7.0.yml` for `redis/7.0` image) so deployment scripts can find them automatically using the `category/version` format.
 
 ## Pod Manifests
 
 Pod manifests in `pods/` directory serve as templates for the deployment script. Each manifest should:
 
-1. Be named `<purpose>.yml` (e.g., `network-debug.yml`)
-2. Include standard labels: `app: debug-pod` and `type: <purpose>`
+1. Be organized as `pods/<category>/<version>.yml` (e.g., `pods/mysql/8.0.yml`)
+2. Include standard labels: `app: debug-pod` and `type: <category>-<version>`
 3. Set reasonable default resources (128Mi memory/ephemeral-storage)
 4. Include any volumes, environment variables, or special configurations
 
@@ -171,14 +172,14 @@ Example structure:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: descriptive-pod
+  name: mysql-8.0-pod
   labels:
     app: debug-pod
-    type: network-debug
+    type: mysql-8.0
 spec:
   containers:
   - name: debug-container
-    image: ghcr.io/c-gerke/k8s-pods/<purpose>:latest
+    image: ghcr.io/c-gerke/k8s-pods/mysql-8.0:latest
     command: ['sleep', '3600']
     resources:
       requests:
@@ -253,32 +254,32 @@ The `bin/` directory contains helper scripts for deploying debug pods with intel
 - `kubectl` configured with cluster access
 - `yq` YAML processor (install: `brew install yq` on macOS)
 
-### deploy-pod
+### deploy-debug-pod
 
-Deploys a debug pod using a template from `pods/<type>.yml`:
+Deploys a debug pod using a template from `pods/<category>/<version>.yml`:
 
 ```bash
 # Deploy with context/namespace
-./bin/deploy-pod -c <context> -n <namespace> <pod-type>
+./bin/deploy-debug-pod -c <context> -n <namespace> <category>/<version>
 
 # Deploy to current context/namespace
-./bin/deploy-pod <pod-type>
+./bin/deploy-debug-pod mysql/8.0
 
 # Deploy and exec in one command
-./bin/deploy-pod --auto <pod-type>
+./bin/deploy-debug-pod --auto postgresql/15
 
 # Override resources
-./bin/deploy-pod -m 512Mi -e 512Mi <pod-type>
+./bin/deploy-debug-pod -m 512Mi -e 512Mi ruby/3.4
 
 # Custom pod name
-./bin/deploy-pod --name my-debug <pod-type>
+./bin/deploy-debug-pod --name my-debug network/debug
 
 # List available pod types
-./bin/deploy-pod --list-images
+./bin/deploy-debug-pod --list-images
 ```
 
 **How it works**:
-1. Reads pod manifest template from `pods/<pod-type>.yml`
+1. Reads pod manifest template from `pods/<category>/<version>.yml`
 2. Checks namespace ResourceQuota (if present)
 3. Calculates appropriate resources using smart allocation:
    - Starts at 128Mi default
@@ -293,22 +294,22 @@ Deploys a debug pod using a template from `pods/<type>.yml`:
 6. Creates pod in cluster (if needed)
 7. Preserves all other template configurations (volumes, env, etc.)
 
-### cleanup-pods
+### cleanup-debug-pods
 
 Manages cleanup of deployed debug pods:
 
 ```bash
 # List debug pods in namespace
-./bin/cleanup-pods -n <namespace>
+./bin/cleanup-debug-pods -n <namespace>
 
 # Delete all debug pods (with confirmation)
-./bin/cleanup-pods -n <namespace> --all
+./bin/cleanup-debug-pods -n <namespace> --all
 
 # Delete specific pod
-./bin/cleanup-debug-pods --name network-pod
+./bin/cleanup-debug-pods --name mysql-8.0-pod
 
 # Dry run
-./bin/cleanup-pods -n <namespace> --all --dry-run
+./bin/cleanup-debug-pods -n <namespace> --all --dry-run
 ```
 
 Targets pods with label `app=debug-pod` (automatically added by deployment script).
@@ -318,18 +319,18 @@ Targets pods with label `app=debug-pod` (automatically added by deployment scrip
 ### Local Development
 ```bash
 # Build image locally
-cd images/<purpose>
-docker build -t <purpose>:local .
+cd images/<category>/<version>
+docker build -t <category>-<version>:local .
 
 # Test the image
-docker run --rm -it <purpose>:local
+docker run --rm -it <category>-<version>:local
 
 # Analyze efficiency
-dive <purpose>:local
-dive --ci <purpose>:local
+dive <category>-<version>:local
+dive --ci <category>-<version>:local
 
 # Pull from registry (force amd64 on ARM Macs)
-docker pull --platform linux/amd64 ghcr.io/c-gerke/k8s-pods/<purpose>:latest
+docker pull --platform linux/amd64 ghcr.io/c-gerke/k8s-pods/<category>-<version>:latest
 ```
 
 ### GitHub Actions
@@ -351,12 +352,12 @@ gh run watch
 ```bash
 # Quick ephemeral pod
 kubectl run <name> --rm -it \
-  --image=ghcr.io/c-gerke/k8s-pods/<purpose>:latest \
+  --image=ghcr.io/c-gerke/k8s-pods/<category>-<version>:latest \
   --restart=Never \
   -- /bin/bash
 
 # Apply manifest
-kubectl apply -f pods/<manifest>.yml
+kubectl apply -f pods/<category>/<version>.yml
 kubectl exec -it <pod-name> -- /bin/bash
 
 # Cleanup
@@ -387,17 +388,18 @@ kubectl delete pod <pod-name>
 
 ## Image Naming Convention
 
-Format: `ghcr.io/c-gerke/k8s-pods/<purpose>:latest`
+Format: `ghcr.io/c-gerke/k8s-pods/<category>-<version>:latest`
 
 Examples:
+- `ghcr.io/c-gerke/k8s-pods/mysql-8.0:latest`
+- `ghcr.io/c-gerke/k8s-pods/postgresql-15:latest`
+- `ghcr.io/c-gerke/k8s-pods/ruby-3.4:latest`
 - `ghcr.io/c-gerke/k8s-pods/network-debug:latest`
-- `ghcr.io/c-gerke/k8s-pods/system-debug:latest`
-- `ghcr.io/c-gerke/k8s-pods/db-debug:latest`
 
 Keep names:
-- Lowercase with hyphens
-- Descriptive of primary purpose
-- Short and memorable
+- Lowercase with hyphens between category and version
+- Descriptive of primary purpose and version
+- Organized in filesystem as `category/version`
 
 ## Known Configurations
 
@@ -444,7 +446,7 @@ Ensure:
 Install yq: `brew install yq` on macOS or download from https://github.com/mikefarah/yq/releases
 
 ### Deployment script can't find pod manifest
-Ensure manifest filename matches pod type (e.g., `pods/network-debug.yml` for type `network-debug`)
+Ensure manifest is organized correctly (e.g., `pods/mysql/8.0.yml` for type `mysql/8.0`). Use `category/version` format when deploying.
 
 ## Future Expansion Ideas
 

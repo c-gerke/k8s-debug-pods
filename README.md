@@ -50,7 +50,7 @@ k8s-debug-pods/
 
 ## Available Images
 
-### network-debug
+### Network Debug
 
 Network troubleshooting tools for diagnosing connectivity issues.
 
@@ -87,13 +87,13 @@ Or using the deployment script:
 ./bin/deploy-debug-pod --auto network/debug
 ```
 
-### mysql-debug
+### MySQL Debug
 
 MySQL database client tools for debugging and troubleshooting MySQL databases. These images use the official MySQL client tools matching specific MySQL server versions.
 
 **Note:** These images are based on official MySQL Docker images and provide the exact MySQL client version specified.
 
-#### mysql-debug-8.0
+#### MySQL 8.0
 
 **Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-8.0:latest`
 
@@ -136,7 +136,7 @@ mysql -h mysql-service.default.svc.cluster.local -u root -p
 mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sql
 ```
 
-#### mysql-debug-8.4
+#### MySQL 8.4
 
 **Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-8.4:latest`
 
@@ -172,7 +172,7 @@ Or using the deployment script:
 ./bin/deploy-debug-pod --auto mysql/8.4
 ```
 
-### postgresql-debug
+### PostgreSQL Debug
 
 PostgreSQL database debugging and development tools for database administration and troubleshooting. Available in multiple PostgreSQL versions.
 
@@ -296,7 +296,7 @@ Or using the deployment script:
 ./bin/deploy-debug-pod --auto postgresql-15
 ```
 
-### ruby-debug
+### Ruby Debug
 
 Ruby development and debugging tools for working with Ruby applications. Available in multiple Ruby versions.
 
@@ -378,13 +378,13 @@ For easier deployment with intelligent resource allocation, use the provided scr
 
 ```bash
 # Deploy to specific context and namespace
-./bin/deploy-debug-pod -c my-context -n my-namespace network-debug
+./bin/deploy-debug-pod -c my-context -n my-namespace network/debug
 
 # Deploy and automatically exec into the pod
-./bin/deploy-debug-pod --auto network-debug
+./bin/deploy-debug-pod --auto postgresql/15
 
 # Override resources (useful for constrained environments)
-./bin/deploy-debug-pod -m 256Mi -e 256Mi network-debug
+./bin/deploy-debug-pod -m 256Mi -e 256Mi mysql/8.0
 
 # List all debug pods in a namespace
 ./bin/cleanup-debug-pods -n my-namespace
@@ -477,7 +477,7 @@ Example tests for postgresql-15:
 - psql, pg_dump, pg_restore, pg_isready functionality
 - curl and wget availability
 
-Example tests for mysql-debug-8.0:
+Example tests for mysql/8.0:
 - MySQL 8.0.x version verification
 - mysql, mysqldump, mysqladmin functionality
 - curl and wget availability
@@ -508,7 +508,7 @@ Renovate automatically:
 To build and test images locally:
 
 ```bash
-cd images/network-debug
+cd images/network/debug
 docker build -t network-debug:local .
 docker run --rm -it network-debug:local
 ```
