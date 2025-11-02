@@ -79,6 +79,7 @@ The deployment script:
 - Leaves 20% buffer for other pods in the namespace
 - Caps at 1Gi maximum regardless of quota
 - Supports manual resource overrides
+- Safe by default: Won't recreate existing pods (use --force to recreate)
 
 See [bin/README.md](bin/README.md) for detailed usage and examples.
 

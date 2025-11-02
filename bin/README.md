@@ -33,9 +33,14 @@ Deploy a debug pod with intelligent resource allocation based on namespace quota
 ./bin/deploy-debug-pod -m 512Mi -e 512Mi network-debug
 ```
 
-**Keep Existing Pod (skip recreation):**
+**Force Recreation of Existing Pod:**
 ```bash
-./bin/deploy-debug-pod --keep network-debug
+./bin/deploy-debug-pod --force network-debug
+```
+
+**Exec into Existing Pod (if exists):**
+```bash
+./bin/deploy-debug-pod --auto network-debug
 ```
 
 **List Available Pod Types:**
@@ -43,7 +48,7 @@ Deploy a debug pod with intelligent resource allocation based on namespace quota
 ./bin/deploy-debug-pod --list-images
 ```
 
-**Important:** Pods are immutable in Kubernetes. If a pod with the same name already exists, the script will automatically delete and recreate it to apply changes (unless `--keep` flag is used).
+**Important:** If a pod with the same name already exists, the script will **NOT** recreate it by default. Instead, it will inform you and provide options. Use `--force` to explicitly delete and recreate, or `--auto` to exec into the existing pod.
 
 ### cleanup-debug-pods
 
@@ -98,8 +103,8 @@ The script uses YAML manifests in `pods/` directory as templates:
 - Script uses `yq` to modify resources dynamically
 - Preserves volumes, commands, and other custom configurations
 - Easy to add new pod types - just create a new YAML file
-- **Automatic recreation:** If a pod exists, it's deleted and recreated (pods are immutable)
-- Use `--keep` flag to skip recreation and just exec into existing pod
+- **Safe by default:** Won't recreate existing pods unless `--force` is used
+- Use `--auto` to exec into existing pod or create if missing
 
 ## Adding New Pod Types
 

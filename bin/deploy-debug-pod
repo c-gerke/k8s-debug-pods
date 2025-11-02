@@ -40,7 +40,7 @@ OPTIONS:
     -e, --ephemeral     Override ephemeral storage (e.g., 256Mi, 1Gi)
     --name              Custom pod name (default: <image-type>-debug-pod)
     --auto              Automatically exec into pod after creation
-    --keep              Keep existing pod if found (skip recreation)
+    --force             Force recreation of existing pod
     --list-images       List available debug images
     -h, --help          Show this help message
 
@@ -212,7 +212,7 @@ MEMORY=""
 EPHEMERAL=""
 POD_NAME=""
 AUTO_EXEC=false
-KEEP_EXISTING=false
+FORCE_RECREATE=false
 IMAGE_TYPE=""
 
 while [[ $# -gt 0 ]]; do
@@ -241,8 +241,8 @@ while [[ $# -gt 0 ]]; do
             AUTO_EXEC=true
             shift
             ;;
-        --keep)
-            KEEP_EXISTING=true
+        --force)
+            FORCE_RECREATE=true
             shift
             ;;
         --list-images)
@@ -329,12 +329,20 @@ yq eval ".metadata.name = \"$POD_NAME\" |
          .spec.containers[0].resources.limits.\"ephemeral-storage\" = \"$EPHEMERAL_LIMIT\"" \
          "$MANIFEST_FILE" > "$TEMP_MANIFEST"
 
-# Check if pod already exists and delete it (pods are immutable)
+# Check if pod already exists
 if kubectl --context="$CONTEXT" -n "$NAMESPACE" get pod "$POD_NAME" &>/dev/null; then
-    if [ "$KEEP_EXISTING" = true ]; then
-        echo "Existing pod found. Keeping existing pod (--keep flag provided)."
+    POD_STATUS=$(kubectl --context="$CONTEXT" -n "$NAMESPACE" get pod "$POD_NAME" -o jsonpath='{.status.phase}')
+    
+    if [ "$FORCE_RECREATE" = true ]; then
+        echo "Existing pod found (status: $POD_STATUS). Force recreating..."
+        kubectl --context="$CONTEXT" -n "$NAMESPACE" delete pod "$POD_NAME" --wait=true --timeout=60s
         echo ""
-        echo "Pod already exists!"
+    else
+        echo "Pod '$POD_NAME' already exists (status: $POD_STATUS)"
+        echo ""
+        echo "The pod is already running. Options:"
+        echo "  - Use --force to delete and recreate the pod"
+        echo "  - Use --auto to exec into the existing pod"
         echo ""
         echo "To exec into the pod:"
         echo "  kubectl --context=$CONTEXT -n $NAMESPACE exec -it $POD_NAME -- /bin/bash"
@@ -344,14 +352,10 @@ if kubectl --context="$CONTEXT" -n "$NAMESPACE" get pod "$POD_NAME" &>/dev/null;
         echo ""
         
         if [ "$AUTO_EXEC" = true ]; then
-            echo "Executing into pod..."
+            echo "Executing into existing pod..."
             kubectl --context="$CONTEXT" -n "$NAMESPACE" exec -it "$POD_NAME" -- /bin/bash
         fi
         exit 0
-    else
-        echo "Existing pod found. Deleting to apply changes..."
-        kubectl --context="$CONTEXT" -n "$NAMESPACE" delete pod "$POD_NAME" --wait=true --timeout=60s
-        echo ""
     fi
 fi
 

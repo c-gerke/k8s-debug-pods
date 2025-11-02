@@ -223,9 +223,10 @@ Deploys a debug pod using a template from `pods/<type>.yml`:
    - Caps at 1Gi maximum
 4. Uses `yq` to modify only pod name and resource values
 5. Checks if pod already exists:
-   - If exists: deletes and recreates (pods are immutable)
-   - Use `--keep` flag to skip recreation
-6. Creates pod in cluster
+   - **Default**: Informs user and exits (safe, non-disruptive)
+   - **--force**: Deletes and recreates pod (for applying changes)
+   - **--auto**: Execs into existing pod or creates if missing
+6. Creates pod in cluster (if needed)
 7. Preserves all other template configurations (volumes, env, etc.)
 
 ### cleanup-debug-pods
