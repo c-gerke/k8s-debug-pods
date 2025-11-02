@@ -117,6 +117,8 @@ See [.github/TESTING.md](TESTING.md) for detailed documentation.
 
 ## Adding New Debug Images
 
+### Building Custom Images
+
 1. Create directory structure organized by category and version:
 ```bash
 mkdir -p images/redis/7.0
@@ -158,6 +160,51 @@ your-new-image)
 
 **Note**: Pod manifests are organized by category/version (e.g., `pods/redis/7.0.yml` for `redis/7.0` image) so deployment scripts can find them automatically using the `category/version` format.
 
+### Using External Images
+
+For matching production infrastructure exactly (e.g., Percona images), you can create pod manifests without building custom images:
+
+1. Create pod manifest in `pods/`:
+```bash
+mkdir -p pods/mysql
+touch pods/mysql/percona-8.0.yml
+```
+
+2. Reference external image with SHA pinning:
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-percona-debug-8.0-pod
+  labels:
+    app: debug-pod
+    type: mysql-percona-debug-8.0
+spec:
+  containers:
+  - name: debug-container
+    image: percona:8.0.36-28@sha256:1128d56e64711ed65cb0c57041048967ee5875a2167d708d327885fd1f995fa0
+    command: ['sleep', '3600']
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+        ephemeral-storage: "128Mi"
+      limits:
+        memory: "128Mi"
+        ephemeral-storage: "128Mi"
+  restartPolicy: Never
+```
+
+3. Update README.md with external image details
+
+4. Commit and push - no CI/CD build needed
+
+**Benefits**:
+- Exact match with production infrastructure
+- No maintenance overhead of custom images
+- SHA pinning ensures reproducibility
+- Still compatible with deployment scripts
+
 ## Pod Manifests
 
 Pod manifests in `pods/` directory serve as templates for the deployment script. Each manifest should:
@@ -166,6 +213,7 @@ Pod manifests in `pods/` directory serve as templates for the deployment script.
 2. Include standard labels: `app: debug-pod` and `type: <category>-<version>`
 3. Set reasonable default resources (128Mi memory/ephemeral-storage)
 4. Include any volumes, environment variables, or special configurations
+5. Can reference either custom-built images or external images (e.g., Percona, official images)
 
 Example structure:
 ```yaml

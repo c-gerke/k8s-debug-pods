@@ -30,13 +30,15 @@ k8s-debug-pods/
 ├── pods/                       # Kubernetes pod manifests
 │   ├── mysql/
 │   │   ├── 8.0.yml
-│   │   └── 8.4.yml
+│   │   ├── 8.4.yml
+│   │   └── percona-8.0.yml
 │   ├── network/
 │   │   └── debug.yml
 │   ├── postgresql/
 │   │   ├── 13.yml
 │   │   ├── 14.yml
-│   │   └── 15.yml
+│   │   ├── 15.yml
+│   │   └── percona-13.yml
 │   └── ruby/
 │       ├── 3.3.yml
 │       └── 3.4.yml
@@ -172,6 +174,46 @@ Or using the deployment script:
 ./bin/deploy-debug-pod --auto mysql/8.4
 ```
 
+#### MySQL Percona 8.0
+
+**Image:** `percona:8.0.36-28@sha256:1128d56e64711ed65cb0c57041048967ee5875a2167d708d327885fd1f995fa0`
+
+**Source:** External Percona image (not built by this repository)
+
+**Client:** Percona Server 8.0.36-28
+
+**Installed Tools:**
+- `mysql` - Percona MySQL client (8.0.36-28)
+- `mysqldump` - Database backup utility
+- `mysqladmin` - Server administration utility
+- `curl` - HTTP client
+- `mysqlsh` - MySQL Shell
+- `mysqlbinlog` - Binary log utility
+- `mysqlcheck` - Table maintenance utility
+- Additional Percona-specific tools and utilities
+
+**Usage:**
+```bash
+kubectl apply -f pods/mysql/percona-8.0.yml
+kubectl exec -it mysql-percona-debug-8.0-pod -- /bin/bash
+```
+
+Or using the deployment script:
+```bash
+./bin/deploy-debug-pod --auto mysql/percona-8.0
+```
+
+Example connection to a MySQL database:
+```bash
+# Inside the debug pod
+mysql -h mysql-service.default.svc.cluster.local -u root -p
+
+# Dump a database
+mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sql
+```
+
+**Note:** This pod uses the official Percona Server image with SHA pinning for reproducibility, matching production infrastructure.
+
 ### PostgreSQL Debug
 
 PostgreSQL database debugging and development tools for database administration and troubleshooting. Available in multiple PostgreSQL versions.
@@ -296,6 +338,55 @@ Or using the deployment script:
 ./bin/deploy-debug-pod --auto postgresql-15
 ```
 
+#### PostgreSQL Percona 13
+
+**Image:** `percona/percona-postgresql-operator:2.5.0-ppg13-postgres`
+
+**Source:** External Percona PostgreSQL Operator image (not built by this repository)
+
+**PostgreSQL Version:** 13 (Percona PostgreSQL)
+
+**Installed Tools:**
+- `psql` - PostgreSQL interactive terminal (13.16 - Percona Distribution)
+- `pg_dump` - PostgreSQL database backup utility
+- `pg_restore` - PostgreSQL database restoration utility
+- `pg_isready` - Check PostgreSQL server availability
+- `createdb` - Create a PostgreSQL database
+- `dropdb` - Remove a PostgreSQL database
+- `curl` - HTTP client
+- `pgbackrest` - Backup and restore utility
+- `pg_repack` - Remove bloat from tables and indexes
+- `pg_basebackup` - Base backup utility
+- Additional Percona-specific PostgreSQL tools and utilities
+
+**Usage:**
+```bash
+kubectl apply -f pods/postgresql/percona-13.yml
+kubectl exec -it postgresql-percona-debug-13-pod -- /bin/bash
+```
+
+Or using the deployment script:
+```bash
+./bin/deploy-debug-pod --auto postgresql/percona-13
+```
+
+Example connection to a PostgreSQL database:
+```bash
+# Inside the debug pod
+psql -h postgres-service.default.svc.cluster.local -U myuser -d mydb
+
+# Check if PostgreSQL is ready
+pg_isready -h postgres-service.default.svc.cluster.local -p 5432
+
+# Dump a database
+pg_dump -h postgres-service.default.svc.cluster.local -U myuser mydb > backup.sql
+
+# Restore a database
+pg_restore -h postgres-service.default.svc.cluster.local -U myuser -d mydb backup.sql
+```
+
+**Note:** This pod uses the Percona PostgreSQL Operator image, matching production infrastructure for Percona PostgreSQL deployments.
+
 ### Ruby Debug
 
 Ruby development and debugging tools for working with Ruby applications. Available in multiple Ruby versions.
@@ -406,6 +497,8 @@ See [bin/README.md](bin/README.md) for detailed usage and examples.
 
 ## Adding New Debug Images
 
+### Building Custom Images
+
 1. Create a new directory under `images/` organized by category and version:
    ```bash
    mkdir -p images/category/version
@@ -450,6 +543,34 @@ See [bin/README.md](bin/README.md) for detailed usage and examples.
    ```
    ghcr.io/c-gerke/k8s-debug-pods/category-version:latest
    ```
+
+### Using External Images
+
+You can also create pod manifests that use external images directly (e.g., Percona, Redis official images) without building custom images:
+
+1. Create a pod manifest in `pods/`:
+   ```bash
+   mkdir -p pods/category
+   touch pods/category/external-version.yml
+   # Example: pods/mysql/percona-8.0.yml
+   ```
+
+2. Reference the external image directly:
+   ```yaml
+   image: percona:8.0.36-28@sha256:1128d56e64711ed65cb0c57041048967ee5875a2167d708d327885fd1f995fa0
+   # Use SHA pinning for production images
+   ```
+
+3. Update documentation with the external image details
+
+4. Commit and push:
+   ```bash
+   git add pods/category/
+   git commit -m "Add category/external-version pod using external image"
+   git push
+   ```
+
+This approach is useful when you want to match production infrastructure exactly (e.g., using Percona images that match your database servers).
 
 ## CI/CD Pipeline
 

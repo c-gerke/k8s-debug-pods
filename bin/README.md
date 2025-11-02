@@ -150,6 +150,18 @@ The script automatically:
 ./bin/deploy-debug-pod -c production -n my-app ruby/3.4
 ```
 
+### Using Percona Images
+```bash
+# Deploy Percona MySQL debug pod
+./bin/deploy-debug-pod --auto mysql/percona-8.0
+
+# Deploy Percona PostgreSQL debug pod
+./bin/deploy-debug-pod --auto postgresql/percona-13
+
+# With specific context and namespace
+./bin/deploy-debug-pod -c production -n my-app mysql/percona-8.0
+```
+
 ### Cleanup After Debugging
 ```bash
 # List what's running

@@ -12,11 +12,10 @@ spec:
     command: ['sleep', '3600']
     resources:
       requests:
-        memory: "128Mi"
+        memory: "32Mi"
         cpu: "100m"
-        ephemeral-storage: "128Mi"
       limits:
-        memory: "128Mi"
-        ephemeral-storage: "128Mi"
+        memory: "32Mi"
+        ephemeral-storage: "32Mi"
   restartPolicy: Never
 
