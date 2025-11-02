@@ -80,11 +80,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Convert image path to name
+        id: image-name
+        run: |
+          # Convert path like "mysql/8.0" to "mysql-8.0" for Docker image name
+          IMAGE_NAME=$(echo "${{ matrix.image }}" | tr '/' '-')
+          echo "name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "Image name: $IMAGE_NAME"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5
         with:
-          images: ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}
+          images: ${{ env.IMAGE_PREFIX }}/${{ steps.image-name.outputs.name }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -108,7 +116,7 @@ jobs:
         run: |
           set -e
           
-          IMAGE_TAG="${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:sha-${{ github.sha }}"
+          IMAGE_TAG="${{ env.IMAGE_PREFIX }}/${{ steps.image-name.outputs.name }}:sha-${{ github.sha }}"
           echo "Testing image: $IMAGE_TAG"
           echo ""
           
@@ -119,7 +127,7 @@ jobs:
           
           # Image-specific tests
           case "${{ matrix.image }}" in
-            network-debug)
+            network/debug)
               echo ""
               echo "=== Running Network Debug Tests ==="
               docker run --rm "$IMAGE_TAG" curl --version
@@ -153,7 +161,7 @@ jobs:
               echo "✓ telnet works"
               ;;
             
-            postgresql-debug-13|postgresql-debug-14|postgresql-debug-15)
+            postgresql/13|postgresql/14|postgresql/15)
               echo ""
               echo "=== Running PostgreSQL Debug Tests ==="
               
@@ -161,13 +169,13 @@ jobs:
               echo "✓ psql works: $PG_VERSION"
               
               # Verify correct major version
-              if [[ "${{ matrix.image }}" == "postgresql-debug-13" ]]; then
+              if [[ "${{ matrix.image }}" == "postgresql/13" ]]; then
                 echo "$PG_VERSION" | grep -q "13\." || (echo "❌ Expected PostgreSQL 13.x" && exit 1)
                 echo "✓ PostgreSQL 13.x version verified"
-              elif [[ "${{ matrix.image }}" == "postgresql-debug-14" ]]; then
+              elif [[ "${{ matrix.image }}" == "postgresql/14" ]]; then
                 echo "$PG_VERSION" | grep -q "14\." || (echo "❌ Expected PostgreSQL 14.x" && exit 1)
                 echo "✓ PostgreSQL 14.x version verified"
-              elif [[ "${{ matrix.image }}" == "postgresql-debug-15" ]]; then
+              elif [[ "${{ matrix.image }}" == "postgresql/15" ]]; then
                 echo "$PG_VERSION" | grep -q "15\." || (echo "❌ Expected PostgreSQL 15.x" && exit 1)
                 echo "✓ PostgreSQL 15.x version verified"
               fi
@@ -194,7 +202,7 @@ jobs:
               echo "✓ wget works"
               ;;
             
-            ruby-debug-3.3|ruby-debug-3.4)
+            ruby/3.3|ruby/3.4)
               echo ""
               echo "=== Running Ruby Debug Tests ==="
               
@@ -202,10 +210,10 @@ jobs:
               echo "✓ ruby works: $RUBY_VERSION"
               
               # Verify correct major.minor version
-              if [[ "${{ matrix.image }}" == "ruby-debug-3.3" ]]; then
+              if [[ "${{ matrix.image }}" == "ruby/3.3" ]]; then
                 echo "$RUBY_VERSION" | grep -q "3\.3\." || (echo "❌ Expected Ruby 3.3.x" && exit 1)
                 echo "✓ Ruby 3.3.x version verified"
-              elif [[ "${{ matrix.image }}" == "ruby-debug-3.4" ]]; then
+              elif [[ "${{ matrix.image }}" == "ruby/3.4" ]]; then
                 echo "$RUBY_VERSION" | grep -q "3\.4\." || (echo "❌ Expected Ruby 3.4.x" && exit 1)
                 echo "✓ Ruby 3.4.x version verified"
               fi
@@ -236,47 +244,47 @@ jobs:
               echo "✓ gcc works (for native gem extensions)"
               ;;
             
-          mysql-debug-8.0|mysql-debug-8.4)
-            echo ""
-            echo "=== Testing MySQL Client Tools ==="
-            
-            docker run --rm "$IMAGE_TAG" mysql --version
-            echo "✓ mysql works"
-            
-            docker run --rm "$IMAGE_TAG" mysqldump --version
-            echo "✓ mysqldump works"
-            
-            docker run --rm "$IMAGE_TAG" mysqladmin --version
-            echo "✓ mysqladmin works"
-            
-            docker run --rm "$IMAGE_TAG" curl --version
-            echo "✓ curl works"
-            
-            docker run --rm "$IMAGE_TAG" wget --version
-            echo "✓ wget works"
+            mysql/8.0|mysql/8.4)
+              echo ""
+              echo "=== Testing MySQL Client Tools ==="
               
-            echo ""
-            echo "=== Verifying MySQL Version ==="
-            MYSQL_VERSION=$(docker run --rm "$IMAGE_TAG" mysql --version)
-            echo "MySQL Version: $MYSQL_VERSION"
-            
-            EXPECTED_VERSION="${{ matrix.image }}"
-            if [[ "$EXPECTED_VERSION" == "mysql-debug-8.0" ]]; then
-              if echo "$MYSQL_VERSION" | grep -q "Ver 8.0"; then
-                echo "✓ MySQL 8.0 version verified"
-              else
-                echo "❌ Expected MySQL 8.0, got: $MYSQL_VERSION"
-                exit 1
+              docker run --rm "$IMAGE_TAG" mysql --version
+              echo "✓ mysql works"
+              
+              docker run --rm "$IMAGE_TAG" mysqldump --version
+              echo "✓ mysqldump works"
+              
+              docker run --rm "$IMAGE_TAG" mysqladmin --version
+              echo "✓ mysqladmin works"
+              
+              docker run --rm "$IMAGE_TAG" curl --version
+              echo "✓ curl works"
+              
+              docker run --rm "$IMAGE_TAG" wget --version
+              echo "✓ wget works"
+              
+              echo ""
+              echo "=== Verifying MySQL Version ==="
+              MYSQL_VERSION=$(docker run --rm "$IMAGE_TAG" mysql --version)
+              echo "MySQL Version: $MYSQL_VERSION"
+              
+              EXPECTED_VERSION="${{ matrix.image }}"
+              if [[ "$EXPECTED_VERSION" == "mysql/8.0" ]]; then
+                if echo "$MYSQL_VERSION" | grep -q "Ver 8.0"; then
+                  echo "✓ MySQL 8.0 version verified"
+                else
+                  echo "❌ Expected MySQL 8.0, got: $MYSQL_VERSION"
+                  exit 1
+                fi
+              elif [[ "$EXPECTED_VERSION" == "mysql/8.4" ]]; then
+                if echo "$MYSQL_VERSION" | grep -q "Ver 8.4"; then
+                  echo "✓ MySQL 8.4 version verified"
+                else
+                  echo "❌ Expected MySQL 8.4, got: $MYSQL_VERSION"
+                  exit 1
+                fi
               fi
-            elif [[ "$EXPECTED_VERSION" == "mysql-debug-8.4" ]]; then
-              if echo "$MYSQL_VERSION" | grep -q "Ver 8.4"; then
-                echo "✓ MySQL 8.4 version verified"
-              else
-                echo "❌ Expected MySQL 8.4, got: $MYSQL_VERSION"
-                exit 1
-              fi
-            fi
-            ;;
+              ;;
             
             *)
               echo ""

@@ -31,7 +31,7 @@ Usage: $(basename "$0") [OPTIONS] IMAGE_TYPE
 Deploy a Kubernetes debug pod with intelligent resource allocation.
 
 ARGUMENTS:
-    IMAGE_TYPE          Type of debug image to deploy (e.g., network-debug)
+    IMAGE_TYPE          Type of debug image to deploy (e.g., network/debug, mysql/8.0)
 
 OPTIONS:
     -c, --context       Kubernetes context to use (default: current context)
@@ -46,16 +46,16 @@ OPTIONS:
 
 EXAMPLES:
     # Deploy network-debug pod in current context/namespace
-    $(basename "$0") network-debug
+    $(basename "$0") network/debug
 
     # Deploy with specific context and namespace
-    $(basename "$0") -c context1 -n namespace1 network-debug
+    $(basename "$0") -c context1 -n namespace1 mysql/8.0
 
     # Deploy and automatically exec into pod
-    $(basename "$0") --auto network-debug
+    $(basename "$0") --auto postgresql/15
 
     # Override memory allocation
-    $(basename "$0") -m 512Mi network-debug
+    $(basename "$0") -m 512Mi ruby/3.4
 
     # List available images
     $(basename "$0") --list-images
@@ -67,14 +67,15 @@ EOF
 list_available_images() {
     echo "Available debug pod types:"
     echo ""
-    for manifest in "$PODS_DIR"/*.yml; do
-        if [ -f "$manifest" ]; then
-            pod_type=$(basename "$manifest" .yml)
-            echo "  - $pod_type"
-        fi
-    done
+    # Find all .yml files recursively, convert to category/version format
+    find "$PODS_DIR" -name "*.yml" -type f | while read -r manifest; do
+        # Remove pods directory prefix and .yml suffix
+        pod_type="${manifest#"$PODS_DIR/"}"
+        pod_type="${pod_type%.yml}"
+        echo "  - $pod_type"
+    done | sort
     echo ""
-    echo "Note: Use the pod type name (filename without .yml) as IMAGE_TYPE"
+    echo "Note: Use the category/version format as IMAGE_TYPE (e.g., mysql/8.0, network/debug)"
     exit 0
 }
 

@@ -7,31 +7,39 @@ A collection of purpose-built container images and Kubernetes manifests for debu
 ```
 k8s-debug-pods/
 ├── images/                     # Container image definitions
-│   ├── mysql-debug-8.0/        # MySQL 8.0 client tools
-│   │   └── Dockerfile
-│   ├── mysql-debug-8.4/        # MySQL 8.4 client tools
-│   │   └── Dockerfile
-│   ├── network-debug/          # Network debugging tools
-│   │   └── Dockerfile
-│   ├── postgresql-debug-13/    # PostgreSQL 13 client tools
-│   │   └── Dockerfile
-│   ├── postgresql-debug-14/    # PostgreSQL 14 client tools
-│   │   └── Dockerfile
-│   ├── postgresql-debug-15/    # PostgreSQL 15 client tools
-│   │   └── Dockerfile
-│   ├── ruby-debug-3.3/         # Ruby 3.3.x development tools
-│   │   └── Dockerfile
-│   └── ruby-debug-3.4/         # Ruby 3.4.x development tools
-│       └── Dockerfile
+│   ├── mysql/                  # MySQL client tools
+│   │   ├── 8.0/
+│   │   │   └── Dockerfile
+│   │   └── 8.4/
+│   │       └── Dockerfile
+│   ├── network/                # Network debugging tools
+│   │   └── debug/
+│   │       └── Dockerfile
+│   ├── postgresql/             # PostgreSQL client tools
+│   │   ├── 13/
+│   │   │   └── Dockerfile
+│   │   ├── 14/
+│   │   │   └── Dockerfile
+│   │   └── 15/
+│   │       └── Dockerfile
+│   └── ruby/                   # Ruby development tools
+│       ├── 3.3/
+│       │   └── Dockerfile
+│       └── 3.4/
+│           └── Dockerfile
 ├── pods/                       # Kubernetes pod manifests
-│   ├── mysql-debug-8.0.yml
-│   ├── mysql-debug-8.4.yml
-│   ├── network-debug.yml
-│   ├── postgresql-debug-13.yml
-│   ├── postgresql-debug-14.yml
-│   ├── postgresql-debug-15.yml
-│   ├── ruby-debug-3.3.yml
-│   └── ruby-debug-3.4.yml
+│   ├── mysql/
+│   │   ├── 8.0.yml
+│   │   └── 8.4.yml
+│   ├── network/
+│   │   └── debug.yml
+│   ├── postgresql/
+│   │   ├── 13.yml
+│   │   ├── 14.yml
+│   │   └── 15.yml
+│   └── ruby/
+│       ├── 3.3.yml
+│       └── 3.4.yml
 ├── bin/                        # Deployment helper scripts
 │   ├── deploy-debug-pod
 │   └── cleanup-debug-pods
@@ -42,11 +50,13 @@ k8s-debug-pods/
 
 ## Available Images
 
-### network-debug
+### Network Debug
 
 Network troubleshooting tools for diagnosing connectivity issues.
 
 **Image:** `ghcr.io/c-gerke/k8s-debug-pods/network-debug:latest`
+
+**Source:** `images/network/debug/Dockerfile`
 
 **Installed Tools:**
 - `curl` - HTTP client
@@ -68,24 +78,26 @@ kubectl run network-debug --rm -it \
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/network-debug.yml
+kubectl apply -f pods/network/debug.yml
 kubectl exec -it network-debug-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto network-debug
+./bin/deploy-debug-pod --auto network/debug
 ```
 
-### mysql-debug
+### MySQL Debug
 
 MySQL database client tools for debugging and troubleshooting MySQL databases. These images use the official MySQL client tools matching specific MySQL server versions.
 
 **Note:** These images are based on official MySQL Docker images and provide the exact MySQL client version specified.
 
-#### mysql-debug-8.0
+#### MySQL 8.0
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.0:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-8.0:latest`
+
+**Source:** `images/mysql/8.0/Dockerfile`
 
 **Client:** MySQL 8.0.43
 
@@ -98,21 +110,21 @@ MySQL database client tools for debugging and troubleshooting MySQL databases. T
 
 **Usage:**
 ```bash
-kubectl run mysql-debug-8.0 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.0:latest \
+kubectl run mysql-8.0 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-8.0:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/mysql-debug-8.0.yml
+kubectl apply -f pods/mysql/8.0.yml
 kubectl exec -it mysql-debug-8.0-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto mysql-debug-8.0
+./bin/deploy-debug-pod --auto mysql/8.0
 ```
 
 Example connection to a MySQL database:
@@ -124,9 +136,11 @@ mysql -h mysql-service.default.svc.cluster.local -u root -p
 mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sql
 ```
 
-#### mysql-debug-8.4
+#### MySQL 8.4
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.4:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-8.4:latest`
+
+**Source:** `images/mysql/8.4/Dockerfile`
 
 **Client:** MySQL 8.4.5
 
@@ -141,30 +155,30 @@ mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sq
 
 **Usage:**
 ```bash
-kubectl run mysql-debug-8.4 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.4:latest \
+kubectl run mysql-8.4 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-8.4:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/mysql-debug-8.4.yml
+kubectl apply -f pods/mysql/8.4.yml
 kubectl exec -it mysql-debug-8.4-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto mysql-debug-8.4
+./bin/deploy-debug-pod --auto mysql/8.4
 ```
 
-### postgresql-debug
+### PostgreSQL Debug
 
 PostgreSQL database debugging and development tools for database administration and troubleshooting. Available in multiple PostgreSQL versions.
 
-#### postgresql-debug-13
+#### postgresql-13
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug-13:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-13:latest`
 
 **PostgreSQL Version:** 13 (latest patch version)
 
@@ -180,21 +194,21 @@ PostgreSQL database debugging and development tools for database administration 
 
 **Usage:**
 ```bash
-kubectl run postgresql-debug-13 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug-13:latest \
+kubectl run postgresql-13 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-13:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/postgresql-debug-13.yml
-kubectl exec -it postgresql-debug-13-pod -- /bin/bash
+kubectl apply -f pods/postgresql-13.yml
+kubectl exec -it postgresql-13-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto postgresql-debug-13
+./bin/deploy-debug-pod --auto postgresql-13
 ```
 
 Example connection to a PostgreSQL database:
@@ -212,9 +226,9 @@ pg_dump -h postgres-service.default.svc.cluster.local -U myuser mydb > backup.sq
 pg_restore -h postgres-service.default.svc.cluster.local -U myuser -d mydb backup.sql
 ```
 
-#### postgresql-debug-14
+#### postgresql-14
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug-14:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-14:latest`
 
 **PostgreSQL Version:** 14 (latest patch version)
 
@@ -230,26 +244,26 @@ pg_restore -h postgres-service.default.svc.cluster.local -U myuser -d mydb backu
 
 **Usage:**
 ```bash
-kubectl run postgresql-debug-14 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug-14:latest \
+kubectl run postgresql-14 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-14:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/postgresql-debug-14.yml
-kubectl exec -it postgresql-debug-14-pod -- /bin/bash
+kubectl apply -f pods/postgresql-14.yml
+kubectl exec -it postgresql-14-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto postgresql-debug-14
+./bin/deploy-debug-pod --auto postgresql-14
 ```
 
-#### postgresql-debug-15
+#### postgresql-15
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug-15:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-15:latest`
 
 **PostgreSQL Version:** 15 (latest patch version)
 
@@ -265,30 +279,30 @@ Or using the deployment script:
 
 **Usage:**
 ```bash
-kubectl run postgresql-debug-15 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug-15:latest \
+kubectl run postgresql-15 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-15:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/postgresql-debug-15.yml
-kubectl exec -it postgresql-debug-15-pod -- /bin/bash
+kubectl apply -f pods/postgresql-15.yml
+kubectl exec -it postgresql-15-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto postgresql-debug-15
+./bin/deploy-debug-pod --auto postgresql-15
 ```
 
-### ruby-debug
+### Ruby Debug
 
 Ruby development and debugging tools for working with Ruby applications. Available in multiple Ruby versions.
 
-#### ruby-debug-3.3
+#### ruby-3.3
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/ruby-debug-3.3:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/ruby-3.3:latest`
 
 **Ruby Version:** 3.3.10
 
@@ -305,26 +319,26 @@ Ruby development and debugging tools for working with Ruby applications. Availab
 
 **Usage:**
 ```bash
-kubectl run ruby-debug-3.3 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/ruby-debug-3.3:latest \
+kubectl run ruby-3.3 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/ruby-3.3:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/ruby-debug-3.3.yml
-kubectl exec -it ruby-debug-3.3-pod -- /bin/bash
+kubectl apply -f pods/ruby-3.3.yml
+kubectl exec -it ruby-3.3-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto ruby-debug-3.3
+./bin/deploy-debug-pod --auto ruby-3.3
 ```
 
-#### ruby-debug-3.4
+#### ruby-3.4
 
-**Image:** `ghcr.io/c-gerke/k8s-debug-pods/ruby-debug-3.4:latest`
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/ruby-3.4:latest`
 
 **Ruby Version:** 3.4.7
 
@@ -341,21 +355,21 @@ Or using the deployment script:
 
 **Usage:**
 ```bash
-kubectl run ruby-debug-3.4 --rm -it \
-  --image=ghcr.io/c-gerke/k8s-debug-pods/ruby-debug-3.4:latest \
+kubectl run ruby-3.4 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/ruby-3.4:latest \
   --restart=Never \
   -- /bin/bash
 ```
 
 Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/ruby-debug-3.4.yml
-kubectl exec -it ruby-debug-3.4-pod -- /bin/bash
+kubectl apply -f pods/ruby-3.4.yml
+kubectl exec -it ruby-3.4-pod -- /bin/bash
 ```
 
 Or using the deployment script:
 ```bash
-./bin/deploy-debug-pod --auto ruby-debug-3.4
+./bin/deploy-debug-pod --auto ruby-3.4
 ```
 
 ### Deployment Scripts
@@ -364,13 +378,13 @@ For easier deployment with intelligent resource allocation, use the provided scr
 
 ```bash
 # Deploy to specific context and namespace
-./bin/deploy-debug-pod -c my-context -n my-namespace network-debug
+./bin/deploy-debug-pod -c my-context -n my-namespace network/debug
 
 # Deploy and automatically exec into the pod
-./bin/deploy-debug-pod --auto network-debug
+./bin/deploy-debug-pod --auto postgresql/15
 
 # Override resources (useful for constrained environments)
-./bin/deploy-debug-pod -m 256Mi -e 256Mi network-debug
+./bin/deploy-debug-pod -m 256Mi -e 256Mi mysql/8.0
 
 # List all debug pods in a namespace
 ./bin/cleanup-debug-pods -n my-namespace
@@ -392,14 +406,16 @@ See [bin/README.md](bin/README.md) for detailed usage and examples.
 
 ## Adding New Debug Images
 
-1. Create a new directory under `images/` with a descriptive name:
+1. Create a new directory under `images/` organized by category and version:
    ```bash
-   mkdir -p images/my-new-debugger
+   mkdir -p images/category/version
+   # Example: images/redis/7.0
    ```
 
 2. Add a `Dockerfile` in that directory:
    ```bash
-   touch images/my-new-debugger/Dockerfile
+   touch images/category/version/Dockerfile
+   # Example: images/redis/7.0/Dockerfile
    ```
 
 3. Build your Dockerfile following these guidelines:
@@ -410,19 +426,29 @@ See [bin/README.md](bin/README.md) for detailed usage and examples.
 
 4. Create a corresponding pod manifest in `pods/`:
    ```bash
-   touch pods/my-new-debugger.yml
+   mkdir -p pods/category
+   touch pods/category/version.yml
+   # Example: pods/redis/7.0.yml
    ```
 
-5. Commit and push the Dockerfile:
+5. Update the manifest to reference the correct image:
+   ```yaml
+   image: ghcr.io/c-gerke/k8s-debug-pods/category-version:latest
+   # Example: ghcr.io/c-gerke/k8s-debug-pods/redis-7.0:latest
+   ```
+
+6. Add tests to `.github/workflows/build-images.yml` for the new image
+
+7. Commit and push the changes:
    ```bash
-   git add images/my-new-debugger/Dockerfile pods/my-new-debugger.yml
-   git commit -m "Add my-new-debugger image"
+   git add images/category/ pods/category/
+   git commit -m "Add category/version debug image"
    git push
    ```
 
-6. GitHub Actions will automatically build and push the image to:
+8. GitHub Actions will automatically build and push the image to:
    ```
-   ghcr.io/c-gerke/k8s-debug-pods/my-new-debugger:latest
+   ghcr.io/c-gerke/k8s-debug-pods/category-version:latest
    ```
 
 ## CI/CD Pipeline
@@ -446,12 +472,12 @@ Every image is tested before being pushed to ensure quality:
 - **Version verification:** Ensure correct versions are installed (e.g., PostgreSQL 15.x, Ruby 3.4.x, MySQL 8.0.x)
 - **Fail-fast:** Build fails immediately if any test fails
 
-Example tests for postgresql-debug-15:
+Example tests for postgresql-15:
 - PostgreSQL 15.x version verification
 - psql, pg_dump, pg_restore, pg_isready functionality
 - curl and wget availability
 
-Example tests for mysql-debug-8.0:
+Example tests for mysql/8.0:
 - MySQL 8.0.x version verification
 - mysql, mysqldump, mysqladmin functionality
 - curl and wget availability
@@ -482,7 +508,7 @@ Renovate automatically:
 To build and test images locally:
 
 ```bash
-cd images/network-debug
+cd images/network/debug
 docker build -t network-debug:local .
 docker run --rm -it network-debug:local
 ```
