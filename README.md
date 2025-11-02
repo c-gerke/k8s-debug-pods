@@ -7,10 +7,13 @@ A collection of purpose-built container images and Kubernetes manifests for debu
 ```
 k8s-debug-pods/
 ├── images/              # Container image definitions
-│   └── network-debug/   # Network debugging tools
+│   ├── network-debug/   # Network debugging tools
+│   │   └── Dockerfile
+│   └── ruby-debug/      # Ruby development tools
 │       └── Dockerfile
 ├── pods/                # Kubernetes pod manifests
-│   └── network-debug.yml
+│   ├── network-debug.yml
+│   └── ruby-debug.yml
 ├── bin/                 # Deployment helper scripts
 │   ├── deploy-debug-pod
 │   └── cleanup-debug-pods
@@ -49,6 +52,37 @@ Or apply the pod manifest directly:
 ```bash
 kubectl apply -f pods/network-debug.yml
 kubectl exec -it network-debug-pod -- /bin/bash
+```
+
+### ruby-debug
+
+Ruby development and debugging tools for working with Ruby applications.
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/ruby-debug:latest`
+
+**Installed Tools:**
+- `ruby` - Ruby interpreter (3.1.x)
+- `irb` - Interactive Ruby shell
+- `gem` - Ruby package manager
+- `bundler` - Ruby dependency manager
+- `git` - Version control (for fetching dependencies)
+- `curl` / `wget` - HTTP clients
+- `vim` - Text editor
+- `build-essential` - C compiler and build tools (for native gem extensions)
+- Development libraries: `libssl-dev`, `libreadline-dev`, `zlib1g-dev`
+
+**Usage:**
+```bash
+kubectl run ruby-debug --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/ruby-debug:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/ruby-debug.yml
+kubectl exec -it ruby-debug-pod -- /bin/bash
 ```
 
 ### Deployment Scripts
