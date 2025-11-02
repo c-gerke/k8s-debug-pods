@@ -1,11 +1,11 @@
-FROM debian:bookworm-slim@sha256:78d2f66e0fec9e5a39fb2c72ea5e052b548df75602b5215ed01a17171529f706
+FROM mysql:8.0.43-debian
 
-RUN apt-get update && \
+RUN rm -f /etc/apt/sources.list.d/mysql.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
-    default-mysql-client \
-    postgresql-client \
-    redis-tools && \
+    curl \
+    wget && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* \
            /tmp/* \
