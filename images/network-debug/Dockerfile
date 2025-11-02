@@ -2,6 +2,7 @@ FROM debian:bookworm-slim@sha256:78d2f66e0fec9e5a39fb2c72ea5e052b548df75602b5215
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    ca-certificates \
     curl \
     wget \
     dnsutils \
