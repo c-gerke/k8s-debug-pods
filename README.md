@@ -9,8 +9,11 @@ k8s-debug-pods/
 ├── images/              # Container image definitions
 │   └── network-debug/   # Network debugging tools
 │       └── Dockerfile
-├── pods/                # Example Kubernetes pod manifests
-│   └── debug-pod.yml
+├── pods/                # Kubernetes pod manifests
+│   └── network-debug.yml
+├── bin/                 # Deployment helper scripts
+│   ├── deploy-debug-pod
+│   └── cleanup-debug-pods
 ├── .github/
 │   └── workflows/       # CI/CD automation
 └── renovate.json        # Automated dependency updates
@@ -42,11 +45,40 @@ kubectl run network-debug --rm -it \
   -- /bin/bash
 ```
 
-Or apply the example pod manifest:
+Or apply the pod manifest directly:
 ```bash
-kubectl apply -f pods/debug-pod.yml
-kubectl exec -it ubuntu-debug-pod -- /bin/bash
+kubectl apply -f pods/network-debug.yml
+kubectl exec -it network-debug-pod -- /bin/bash
 ```
+
+### Deployment Scripts
+
+For easier deployment with intelligent resource allocation, use the provided scripts:
+
+```bash
+# Deploy to specific context and namespace
+./bin/deploy-debug-pod -c my-context -n my-namespace network-debug
+
+# Deploy and automatically exec into the pod
+./bin/deploy-debug-pod --auto network-debug
+
+# Override resources (useful for constrained environments)
+./bin/deploy-debug-pod -m 256Mi -e 256Mi network-debug
+
+# List all debug pods in a namespace
+./bin/cleanup-debug-pods -n my-namespace
+
+# Clean up all debug pods
+./bin/cleanup-debug-pods -n my-namespace --all
+```
+
+The deployment script:
+- Automatically calculates appropriate resource allocations based on namespace quotas
+- Uses pod manifests as templates (maintains volumes, commands, etc.)
+- Defaults to 128Mi, can scale up to 1Gi based on availability
+- Supports manual resource overrides
+
+See [bin/README.md](bin/README.md) for detailed usage and examples.
 
 ## Adding New Debug Images
 
@@ -99,8 +131,13 @@ Renovate automatically:
 
 ## Requirements
 
+### For Using Images
 - Kubernetes cluster with appropriate RBAC permissions
 - Access to pull from GitHub Container Registry (public by default)
+
+### For Deployment Scripts
+- `kubectl` configured with cluster access
+- `yq` YAML processor (install with `brew install yq` on macOS)
 
 ## Local Development
 

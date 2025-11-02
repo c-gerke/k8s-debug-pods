@@ -1,0 +1,321 @@
+#!/usr/bin/env bash
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+PODS_DIR="$REPO_DIR/pods"
+
+DEFAULT_MEMORY_REQUEST="128Mi"
+DEFAULT_MEMORY_LIMIT="128Mi"
+DEFAULT_EPHEMERAL_REQUEST="128Mi"
+DEFAULT_EPHEMERAL_LIMIT="128Mi"
+MAX_MEMORY="1Gi"
+MAX_EPHEMERAL="1Gi"
+
+check_dependencies() {
+    if ! command -v yq &> /dev/null; then
+        echo "Error: yq is required but not installed."
+        echo ""
+        echo "Install with:"
+        echo "  macOS:  brew install yq"
+        echo "  Linux:  wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq && chmod +x /usr/local/bin/yq"
+        exit 1
+    fi
+}
+
+show_usage() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS] IMAGE_TYPE
+
+Deploy a Kubernetes debug pod with intelligent resource allocation.
+
+ARGUMENTS:
+    IMAGE_TYPE          Type of debug image to deploy (e.g., network-debug)
+
+OPTIONS:
+    -c, --context       Kubernetes context to use (default: current context)
+    -n, --namespace     Kubernetes namespace (default: current namespace)
+    -m, --memory        Override memory request/limit (e.g., 256Mi, 1Gi)
+    -e, --ephemeral     Override ephemeral storage (e.g., 256Mi, 1Gi)
+    --name              Custom pod name (default: <image-type>-debug-pod)
+    --auto              Automatically exec into pod after creation
+    --list-images       List available debug images
+    -h, --help          Show this help message
+
+EXAMPLES:
+    # Deploy network-debug pod in current context/namespace
+    $(basename "$0") network-debug
+
+    # Deploy with specific context and namespace
+    $(basename "$0") -c context1 -n namespace1 network-debug
+
+    # Deploy and automatically exec into pod
+    $(basename "$0") --auto network-debug
+
+    # Override memory allocation
+    $(basename "$0") -m 512Mi network-debug
+
+    # List available images
+    $(basename "$0") --list-images
+
+EOF
+    exit 0
+}
+
+list_available_images() {
+    echo "Available debug pod types:"
+    echo ""
+    for manifest in "$PODS_DIR"/*.yml; do
+        if [ -f "$manifest" ]; then
+            pod_type=$(basename "$manifest" .yml)
+            echo "  - $pod_type"
+        fi
+    done
+    echo ""
+    echo "Note: Use the pod type name (filename without .yml) as IMAGE_TYPE"
+    exit 0
+}
+
+convert_to_bytes() {
+    local value=$1
+    local number="${value//[^0-9]/}"
+    local unit="${value//[0-9]/}"
+    
+    case "${unit^^}" in
+        K|KI)
+            echo $((number * 1024))
+            ;;
+        M|MI)
+            echo $((number * 1024 * 1024))
+            ;;
+        G|GI)
+            echo $((number * 1024 * 1024 * 1024))
+            ;;
+        *)
+            echo "$number"
+            ;;
+    esac
+}
+
+bytes_to_human() {
+    local bytes=$1
+    if [ "$bytes" -ge $((1024 * 1024 * 1024)) ]; then
+        echo "$((bytes / 1024 / 1024 / 1024))Gi"
+    elif [ "$bytes" -ge $((1024 * 1024)) ]; then
+        echo "$((bytes / 1024 / 1024))Mi"
+    elif [ "$bytes" -ge 1024 ]; then
+        echo "$((bytes / 1024))Ki"
+    else
+        echo "${bytes}"
+    fi
+}
+
+get_namespace_resource_info() {
+    local context=$1
+    local namespace=$2
+    
+    echo "Checking namespace resource availability..." >&2
+    
+    local quota_memory=""
+    local quota_ephemeral=""
+    
+    if kubectl --context="$context" -n "$namespace" get resourcequota -o json 2>/dev/null | jq -e '.items | length > 0' >/dev/null 2>&1; then
+        quota_memory=$(kubectl --context="$context" -n "$namespace" get resourcequota -o json 2>/dev/null | \
+            jq -r '.items[].spec.hard["limits.memory"] // empty' | head -1)
+        quota_ephemeral=$(kubectl --context="$context" -n "$namespace" get resourcequota -o json 2>/dev/null | \
+            jq -r '.items[].spec.hard["limits.ephemeral-storage"] // empty' | head -1)
+    fi
+    
+    echo "$quota_memory|$quota_ephemeral"
+}
+
+calculate_resources() {
+    local memory_override=$1
+    local ephemeral_override=$2
+    local quota_info=$3
+    
+    local quota_memory=$(echo "$quota_info" | cut -d'|' -f1)
+    local quota_ephemeral=$(echo "$quota_info" | cut -d'|' -f2)
+    
+    local memory_request="$DEFAULT_MEMORY_REQUEST"
+    local memory_limit="$DEFAULT_MEMORY_LIMIT"
+    local ephemeral_request="$DEFAULT_EPHEMERAL_REQUEST"
+    local ephemeral_limit="$DEFAULT_EPHEMERAL_LIMIT"
+    
+    if [ -n "$memory_override" ]; then
+        memory_request="$memory_override"
+        memory_limit="$memory_override"
+    elif [ -n "$quota_memory" ]; then
+        local quota_bytes=$(convert_to_bytes "$quota_memory")
+        local max_bytes=$(convert_to_bytes "$MAX_MEMORY")
+        local default_bytes=$(convert_to_bytes "$DEFAULT_MEMORY_REQUEST")
+        
+        local available_bytes=$((quota_bytes / 4))
+        
+        if [ "$available_bytes" -gt "$max_bytes" ]; then
+            available_bytes=$max_bytes
+        fi
+        
+        if [ "$available_bytes" -gt "$default_bytes" ]; then
+            memory_request=$(bytes_to_human "$available_bytes")
+            memory_limit=$(bytes_to_human "$available_bytes")
+        fi
+    fi
+    
+    if [ -n "$ephemeral_override" ]; then
+        ephemeral_request="$ephemeral_override"
+        ephemeral_limit="$ephemeral_override"
+    elif [ -n "$quota_ephemeral" ]; then
+        local quota_bytes=$(convert_to_bytes "$quota_ephemeral")
+        local max_bytes=$(convert_to_bytes "$MAX_EPHEMERAL")
+        local default_bytes=$(convert_to_bytes "$DEFAULT_EPHEMERAL_REQUEST")
+        
+        local available_bytes=$((quota_bytes / 4))
+        
+        if [ "$available_bytes" -gt "$max_bytes" ]; then
+            available_bytes=$max_bytes
+        fi
+        
+        if [ "$available_bytes" -gt "$default_bytes" ]; then
+            ephemeral_request=$(bytes_to_human "$available_bytes")
+            ephemeral_limit=$(bytes_to_human "$available_bytes")
+        fi
+    fi
+    
+    echo "$memory_request|$memory_limit|$ephemeral_request|$ephemeral_limit"
+}
+
+CONTEXT=""
+NAMESPACE=""
+MEMORY=""
+EPHEMERAL=""
+POD_NAME=""
+AUTO_EXEC=false
+IMAGE_TYPE=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c|--context)
+            CONTEXT="$2"
+            shift 2
+            ;;
+        -n|--namespace)
+            NAMESPACE="$2"
+            shift 2
+            ;;
+        -m|--memory)
+            MEMORY="$2"
+            shift 2
+            ;;
+        -e|--ephemeral)
+            EPHEMERAL="$2"
+            shift 2
+            ;;
+        --name)
+            POD_NAME="$2"
+            shift 2
+            ;;
+        --auto)
+            AUTO_EXEC=true
+            shift
+            ;;
+        --list-images)
+            list_available_images
+            ;;
+        -h|--help)
+            show_usage
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            show_usage
+            ;;
+        *)
+            IMAGE_TYPE="$1"
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$IMAGE_TYPE" ]; then
+    echo "Error: IMAGE_TYPE is required"
+    echo ""
+    show_usage
+fi
+
+if [ -z "$CONTEXT" ]; then
+    CONTEXT=$(kubectl config current-context)
+fi
+
+if [ -z "$NAMESPACE" ]; then
+    NAMESPACE=$(kubectl config view --minify --output 'jsonpath={..namespace}')
+    if [ -z "$NAMESPACE" ]; then
+        NAMESPACE="default"
+    fi
+fi
+
+if [ -z "$POD_NAME" ]; then
+    POD_NAME="${IMAGE_TYPE}-debug-pod"
+fi
+
+check_dependencies
+
+MANIFEST_FILE="$PODS_DIR/${IMAGE_TYPE}.yml"
+
+if [ ! -f "$MANIFEST_FILE" ]; then
+    echo "Error: Pod manifest not found: $MANIFEST_FILE"
+    echo ""
+    echo "Available pod types:"
+    list_available_images
+fi
+
+echo "Deploying debug pod from manifest: $MANIFEST_FILE"
+echo "  Context:   $CONTEXT"
+echo "  Namespace: $NAMESPACE"
+echo "  Pod Name:  $POD_NAME"
+echo ""
+
+QUOTA_INFO=$(get_namespace_resource_info "$CONTEXT" "$NAMESPACE")
+RESOURCE_INFO=$(calculate_resources "$MEMORY" "$EPHEMERAL" "$QUOTA_INFO")
+
+MEMORY_REQUEST=$(echo "$RESOURCE_INFO" | cut -d'|' -f1)
+MEMORY_LIMIT=$(echo "$RESOURCE_INFO" | cut -d'|' -f2)
+EPHEMERAL_REQUEST=$(echo "$RESOURCE_INFO" | cut -d'|' -f3)
+EPHEMERAL_LIMIT=$(echo "$RESOURCE_INFO" | cut -d'|' -f4)
+
+echo "Calculated resources:"
+echo "  Memory:            $MEMORY_REQUEST (request) / $MEMORY_LIMIT (limit)"
+echo "  Ephemeral Storage: $EPHEMERAL_REQUEST (request) / $EPHEMERAL_LIMIT (limit)"
+echo ""
+
+TEMP_MANIFEST=$(mktemp)
+trap "rm -f $TEMP_MANIFEST" EXIT
+
+yq eval ".metadata.name = \"$POD_NAME\" | 
+         .spec.containers[0].resources.requests.memory = \"$MEMORY_REQUEST\" | 
+         .spec.containers[0].resources.limits.memory = \"$MEMORY_LIMIT\" |
+         .spec.containers[0].resources.requests.\"ephemeral-storage\" = \"$EPHEMERAL_REQUEST\" |
+         .spec.containers[0].resources.limits.\"ephemeral-storage\" = \"$EPHEMERAL_LIMIT\"" \
+         "$MANIFEST_FILE" > "$TEMP_MANIFEST"
+
+kubectl --context="$CONTEXT" -n "$NAMESPACE" apply -f "$TEMP_MANIFEST"
+
+echo ""
+echo "Waiting for pod to be ready..."
+kubectl --context="$CONTEXT" -n "$NAMESPACE" wait --for=condition=Ready pod/"$POD_NAME" --timeout=60s
+
+echo ""
+echo "Pod deployed successfully!"
+echo ""
+echo "To exec into the pod:"
+echo "  kubectl --context=$CONTEXT -n $NAMESPACE exec -it $POD_NAME -- /bin/bash"
+echo ""
+echo "To delete the pod:"
+echo "  kubectl --context=$CONTEXT -n $NAMESPACE delete pod $POD_NAME"
+echo ""
+
+if [ "$AUTO_EXEC" = true ]; then
+    echo "Executing into pod..."
+    kubectl --context="$CONTEXT" -n "$NAMESPACE" exec -it "$POD_NAME" -- /bin/bash
+fi
+

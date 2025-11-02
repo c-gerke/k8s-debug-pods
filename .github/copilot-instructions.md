@@ -88,12 +88,22 @@ mkdir -p images/new-debugger
 
 ## Pod Manifests
 
+Pod manifests in `pods/` directory serve as templates for the deployment script. Each manifest should:
+
+1. Be named `<purpose>.yml` (e.g., `network-debug.yml`)
+2. Include standard labels: `app: debug-pod` and `type: <purpose>`
+3. Set reasonable default resources (128Mi memory/ephemeral-storage)
+4. Include any volumes, environment variables, or special configurations
+
 Example structure:
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
   name: descriptive-debug-pod
+  labels:
+    app: debug-pod
+    type: network-debug
 spec:
   containers:
   - name: debug-container
@@ -103,13 +113,19 @@ spec:
       requests:
         memory: "128Mi"
         cpu: "100m"
-        ephemeral-storage: "64Mi"
+        ephemeral-storage: "128Mi"
       limits:
-        memory: "200Mi"
+        memory: "128Mi"
         cpu: "500m"
-        ephemeral-storage: "64Mi"
+        ephemeral-storage: "128Mi"
   restartPolicy: Never
 ```
+
+The deployment script uses `yq` to dynamically modify:
+- Pod name
+- Resource requests/limits (memory and ephemeral-storage)
+
+All other configurations (volumes, commands, env vars, etc.) are preserved from the template.
 
 ## Code Style & Documentation
 
@@ -153,6 +169,25 @@ Before completing any change:
 - Test builds locally before pushing when possible
 
 ## Repository-Specific Commands
+
+### Deployment Scripts
+
+```bash
+# Deploy debug pod with auto-resource calculation
+./bin/deploy-debug-pod -c <context> -n <namespace> <pod-type>
+
+# Deploy and exec in one command
+./bin/deploy-debug-pod --auto <pod-type>
+
+# Override resources
+./bin/deploy-debug-pod -m 512Mi -e 512Mi <pod-type>
+
+# List available pod types
+./bin/deploy-debug-pod --list-images
+
+# Cleanup debug pods
+./bin/cleanup-debug-pods -n <namespace> --all
+```
 
 ### Local Development
 ```bash

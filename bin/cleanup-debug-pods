@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+set -e
+
+show_usage() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Clean up debug pods from a Kubernetes namespace.
+
+OPTIONS:
+    -c, --context       Kubernetes context to use (default: current context)
+    -n, --namespace     Kubernetes namespace (default: current namespace)
+    --all               Delete all pods with label app=debug-pod
+    --name              Delete specific pod by name
+    --dry-run           Show what would be deleted without deleting
+    -h, --help          Show this help message
+
+EXAMPLES:
+    # List debug pods in current namespace
+    $(basename "$0")
+
+    # Delete all debug pods in specific namespace
+    $(basename "$0") -c context1 -n namespace1 --all
+
+    # Delete specific pod
+    $(basename "$0") --name network-debug-pod
+
+    # Dry run to see what would be deleted
+    $(basename "$0") --all --dry-run
+
+EOF
+    exit 0
+}
+
+CONTEXT=""
+NAMESPACE=""
+DELETE_ALL=false
+POD_NAME=""
+DRY_RUN=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c|--context)
+            CONTEXT="$2"
+            shift 2
+            ;;
+        -n|--namespace)
+            NAMESPACE="$2"
+            shift 2
+            ;;
+        --all)
+            DELETE_ALL=true
+            shift
+            ;;
+        --name)
+            POD_NAME="$2"
+            shift 2
+            ;;
+        --dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        -h|--help)
+            show_usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_usage
+            ;;
+    esac
+done
+
+if [ -z "$CONTEXT" ]; then
+    CONTEXT=$(kubectl config current-context)
+fi
+
+if [ -z "$NAMESPACE" ]; then
+    NAMESPACE=$(kubectl config view --minify --output 'jsonpath={..namespace}')
+    if [ -z "$NAMESPACE" ]; then
+        NAMESPACE="default"
+    fi
+fi
+
+echo "Context:   $CONTEXT"
+echo "Namespace: $NAMESPACE"
+echo ""
+
+if [ -n "$POD_NAME" ]; then
+    echo "Debug pod to delete: $POD_NAME"
+    if [ "$DRY_RUN" = true ]; then
+        echo "[DRY RUN] Would delete pod: $POD_NAME"
+    else
+        kubectl --context="$CONTEXT" -n "$NAMESPACE" delete pod "$POD_NAME"
+        echo "Pod $POD_NAME deleted successfully"
+    fi
+elif [ "$DELETE_ALL" = true ]; then
+    PODS=$(kubectl --context="$CONTEXT" -n "$NAMESPACE" get pods -l app=debug-pod -o name 2>/dev/null || echo "")
+    
+    if [ -z "$PODS" ]; then
+        echo "No debug pods found"
+        exit 0
+    fi
+    
+    echo "Debug pods found:"
+    kubectl --context="$CONTEXT" -n "$NAMESPACE" get pods -l app=debug-pod
+    echo ""
+    
+    if [ "$DRY_RUN" = true ]; then
+        echo "[DRY RUN] Would delete the following pods:"
+        echo "$PODS"
+    else
+        read -p "Delete all debug pods? (y/N) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            kubectl --context="$CONTEXT" -n "$NAMESPACE" delete pods -l app=debug-pod
+            echo "All debug pods deleted successfully"
+        else
+            echo "Deletion cancelled"
+        fi
+    fi
+else
+    PODS=$(kubectl --context="$CONTEXT" -n "$NAMESPACE" get pods -l app=debug-pod -o wide 2>/dev/null || echo "")
+    
+    if [ -z "$PODS" ]; then
+        echo "No debug pods found"
+    else
+        echo "Debug pods in namespace:"
+        kubectl --context="$CONTEXT" -n "$NAMESPACE" get pods -l app=debug-pod -o wide
+        echo ""
+        echo "Use --all to delete all debug pods or --name <pod-name> to delete a specific pod"
+    fi
+fi
+
