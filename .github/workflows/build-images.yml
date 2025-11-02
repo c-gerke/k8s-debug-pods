@@ -236,27 +236,24 @@ jobs:
               echo "✓ gcc works (for native gem extensions)"
               ;;
             
-            mysql-debug-8.0|mysql-debug-8.4)
-              echo ""
-              echo "=== Testing MySQL Client Tools ==="
-              
-              docker run --rm "$IMAGE_TAG" mysql --version
-              echo "✓ mysql works"
-              
-              docker run --rm "$IMAGE_TAG" mysqldump --version
-              echo "✓ mysqldump works"
-              
-              docker run --rm "$IMAGE_TAG" mysqlshow --version
-              echo "✓ mysqlshow works"
-              
-              docker run --rm "$IMAGE_TAG" mysqladmin --version
-              echo "✓ mysqladmin works"
-              
-              docker run --rm "$IMAGE_TAG" curl --version
-              echo "✓ curl works"
-              
-              docker run --rm "$IMAGE_TAG" wget --version
-              echo "✓ wget works"
+          mysql-debug-8.0|mysql-debug-8.4)
+            echo ""
+            echo "=== Testing MySQL Client Tools ==="
+            
+            docker run --rm "$IMAGE_TAG" mysql --version
+            echo "✓ mysql works"
+            
+            docker run --rm "$IMAGE_TAG" mysqldump --version
+            echo "✓ mysqldump works"
+            
+            docker run --rm "$IMAGE_TAG" mysqladmin --version
+            echo "✓ mysqladmin works"
+            
+            docker run --rm "$IMAGE_TAG" curl --version
+            echo "✓ curl works"
+            
+            docker run --rm "$IMAGE_TAG" wget --version
+            echo "✓ wget works"
               
             echo ""
             echo "=== Verifying MySQL Version ==="

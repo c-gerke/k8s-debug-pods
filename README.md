@@ -92,7 +92,6 @@ MySQL database client tools for debugging and troubleshooting MySQL databases. T
 **Installed Tools:**
 - `mysql` - MySQL client (8.0.43)
 - `mysqldump` - Database backup utility
-- `mysqlshow` - Database/table browser
 - `mysqladmin` - Server administration utility
 - `curl` - HTTP client
 - `wget` - File downloader
@@ -123,9 +122,6 @@ mysql -h mysql-service.default.svc.cluster.local -u root -p
 
 # Dump a database
 mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sql
-
-# Show databases
-mysqlshow -h mysql-service.default.svc.cluster.local -u root -p
 ```
 
 #### mysql-debug-8.4
@@ -137,10 +133,11 @@ mysqlshow -h mysql-service.default.svc.cluster.local -u root -p
 **Installed Tools:**
 - `mysql` - MySQL client (8.4.5)
 - `mysqldump` - Database backup utility
-- `mysqlshow` - Database/table browser
 - `mysqladmin` - Server administration utility
 - `curl` - HTTP client
 - `wget` - File downloader
+
+**Note:** MySQL 8.4 no longer includes `mysqlshow` as it has been deprecated.
 
 **Usage:**
 ```bash
@@ -456,7 +453,7 @@ Example tests for postgresql-debug-15:
 
 Example tests for mysql-debug-8.0:
 - MySQL 8.0.x version verification
-- mysql, mysqldump, mysqlshow, mysqladmin functionality
+- mysql, mysqldump, mysqladmin functionality
 - curl and wget availability
 
 This testing framework enables safe auto-merging of dependency updates. See [.github/TESTING.md](.github/TESTING.md) for details.

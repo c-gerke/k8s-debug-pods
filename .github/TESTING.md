@@ -67,7 +67,6 @@ Tests MySQL client tools and verifies correct version:
 
 - `mysql` - MySQL client (version verified)
 - `mysqldump` - Database backup utility
-- `mysqlshow` - Database/table browser
 - `mysqladmin` - Server administration utility
 - `curl` - HTTP client
 - `wget` - File downloader
