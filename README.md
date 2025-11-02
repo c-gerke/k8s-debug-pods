@@ -6,17 +6,20 @@ A collection of purpose-built container images and Kubernetes manifests for debu
 
 ```
 k8s-debug-pods/
-├── images/              # Container image definitions
-│   └── network-debug/   # Network debugging tools
+├── images/                  # Container image definitions
+│   ├── network-debug/       # Network debugging tools
+│   │   └── Dockerfile
+│   └── postgresql-debug/    # PostgreSQL debugging tools
 │       └── Dockerfile
-├── pods/                # Kubernetes pod manifests
-│   └── network-debug.yml
-├── bin/                 # Deployment helper scripts
+├── pods/                    # Kubernetes pod manifests
+│   ├── network-debug.yml
+│   └── postgresql-debug.yml
+├── bin/                     # Deployment helper scripts
 │   ├── deploy-debug-pod
 │   └── cleanup-debug-pods
 ├── .github/
-│   └── workflows/       # CI/CD automation
-└── renovate.json        # Automated dependency updates
+│   └── workflows/           # CI/CD automation
+└── renovate.json            # Automated dependency updates
 ```
 
 ## Available Images
@@ -49,6 +52,51 @@ Or apply the pod manifest directly:
 ```bash
 kubectl apply -f pods/network-debug.yml
 kubectl exec -it network-debug-pod -- /bin/bash
+```
+
+### postgresql-debug
+
+PostgreSQL database debugging and development tools for database administration and troubleshooting.
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug:latest`
+
+**Installed Tools:**
+- `psql` - PostgreSQL interactive terminal
+- `pg_dump` - PostgreSQL database backup utility
+- `pg_restore` - PostgreSQL database restoration utility
+- `pg_isready` - Check PostgreSQL server availability
+- `createdb` - Create a PostgreSQL database
+- `dropdb` - Remove a PostgreSQL database
+- `curl` - HTTP client
+- `wget` - File downloader
+
+**Usage:**
+```bash
+kubectl run postgresql-debug --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/postgresql-debug:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/postgresql-debug.yml
+kubectl exec -it postgresql-debug-pod -- /bin/bash
+```
+
+Example connection to a PostgreSQL database:
+```bash
+# Inside the debug pod
+psql -h postgres-service.default.svc.cluster.local -U myuser -d mydb
+
+# Check if PostgreSQL is ready
+pg_isready -h postgres-service.default.svc.cluster.local -p 5432
+
+# Dump a database
+pg_dump -h postgres-service.default.svc.cluster.local -U myuser mydb > backup.sql
+
+# Restore a database
+pg_restore -h postgres-service.default.svc.cluster.local -U myuser -d mydb backup.sql
 ```
 
 ### Deployment Scripts
