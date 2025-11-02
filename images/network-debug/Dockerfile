@@ -11,7 +11,12 @@ RUN apt-get update && \
     telnet \
     netcat-traditional && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /var/lib/apt/lists/* \
+           /tmp/* \
+           /var/tmp/* \
+           /var/cache/debconf/* \
+           /var/lib/dpkg/status-old \
+           /var/cache/apt/*.bin
 
 CMD ["/bin/bash"]
 
