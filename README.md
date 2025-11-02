@@ -186,7 +186,11 @@ Or using the deployment script:
 - `mysql` - Percona MySQL client (8.0.36-28)
 - `mysqldump` - Database backup utility
 - `mysqladmin` - Server administration utility
-- Percona-specific tools and utilities
+- `curl` - HTTP client
+- `mysqlsh` - MySQL Shell
+- `mysqlbinlog` - Binary log utility
+- `mysqlcheck` - Table maintenance utility
+- Additional Percona-specific tools and utilities
 
 **Usage:**
 ```bash
@@ -343,11 +347,17 @@ Or using the deployment script:
 **PostgreSQL Version:** 13 (Percona PostgreSQL)
 
 **Installed Tools:**
-- `psql` - PostgreSQL interactive terminal
+- `psql` - PostgreSQL interactive terminal (13.16 - Percona Distribution)
 - `pg_dump` - PostgreSQL database backup utility
 - `pg_restore` - PostgreSQL database restoration utility
 - `pg_isready` - Check PostgreSQL server availability
-- Percona-specific PostgreSQL tools and utilities
+- `createdb` - Create a PostgreSQL database
+- `dropdb` - Remove a PostgreSQL database
+- `curl` - HTTP client
+- `pgbackrest` - Backup and restore utility
+- `pg_repack` - Remove bloat from tables and indexes
+- `pg_basebackup` - Base backup utility
+- Additional Percona-specific PostgreSQL tools and utilities
 
 **Usage:**
 ```bash
