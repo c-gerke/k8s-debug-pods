@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim@sha256:78d2f66e0fec9e5a39fb2c72ea5e052b548df75602b5215ed01a17171529f706
+FROM ruby:3.3-slim@sha256:b7c2d68913e1acab14bf27232703cf930c496119603f4b9b80f79fbf9205c5ca
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -7,9 +7,6 @@ RUN apt-get update && \
     wget \
     git \
     vim \
-    ruby \
-    ruby-dev \
-    bundler \
     build-essential \
     libssl-dev \
     libreadline-dev \
