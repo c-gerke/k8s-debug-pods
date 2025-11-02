@@ -236,6 +236,48 @@ jobs:
               echo "✓ gcc works (for native gem extensions)"
               ;;
             
+          mysql-debug-8.0|mysql-debug-8.4)
+            echo ""
+            echo "=== Testing MySQL Client Tools ==="
+            
+            docker run --rm "$IMAGE_TAG" mysql --version
+            echo "✓ mysql works"
+            
+            docker run --rm "$IMAGE_TAG" mysqldump --version
+            echo "✓ mysqldump works"
+            
+            docker run --rm "$IMAGE_TAG" mysqladmin --version
+            echo "✓ mysqladmin works"
+            
+            docker run --rm "$IMAGE_TAG" curl --version
+            echo "✓ curl works"
+            
+            docker run --rm "$IMAGE_TAG" wget --version
+            echo "✓ wget works"
+              
+            echo ""
+            echo "=== Verifying MySQL Version ==="
+            MYSQL_VERSION=$(docker run --rm "$IMAGE_TAG" mysql --version)
+            echo "MySQL Version: $MYSQL_VERSION"
+            
+            EXPECTED_VERSION="${{ matrix.image }}"
+            if [[ "$EXPECTED_VERSION" == "mysql-debug-8.0" ]]; then
+              if echo "$MYSQL_VERSION" | grep -q "Ver 8.0"; then
+                echo "✓ MySQL 8.0 version verified"
+              else
+                echo "❌ Expected MySQL 8.0, got: $MYSQL_VERSION"
+                exit 1
+              fi
+            elif [[ "$EXPECTED_VERSION" == "mysql-debug-8.4" ]]; then
+              if echo "$MYSQL_VERSION" | grep -q "Ver 8.4"; then
+                echo "✓ MySQL 8.4 version verified"
+              else
+                echo "❌ Expected MySQL 8.4, got: $MYSQL_VERSION"
+                exit 1
+              fi
+            fi
+            ;;
+            
             *)
               echo ""
               echo "⚠️  No specific tests defined for ${{ matrix.image }}"

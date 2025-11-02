@@ -7,6 +7,10 @@ A collection of purpose-built container images and Kubernetes manifests for debu
 ```
 k8s-debug-pods/
 ├── images/                     # Container image definitions
+│   ├── mysql-debug-8.0/        # MySQL 8.0 client tools
+│   │   └── Dockerfile
+│   ├── mysql-debug-8.4/        # MySQL 8.4 client tools
+│   │   └── Dockerfile
 │   ├── network-debug/          # Network debugging tools
 │   │   └── Dockerfile
 │   ├── postgresql-debug-13/    # PostgreSQL 13 client tools
@@ -20,6 +24,8 @@ k8s-debug-pods/
 │   └── ruby-debug-3.4/         # Ruby 3.4.x development tools
 │       └── Dockerfile
 ├── pods/                       # Kubernetes pod manifests
+│   ├── mysql-debug-8.0.yml
+│   ├── mysql-debug-8.4.yml
 │   ├── network-debug.yml
 │   ├── postgresql-debug-13.yml
 │   ├── postgresql-debug-14.yml
@@ -69,6 +75,87 @@ kubectl exec -it network-debug-pod -- /bin/bash
 Or using the deployment script:
 ```bash
 ./bin/deploy-debug-pod --auto network-debug
+```
+
+### mysql-debug
+
+MySQL database client tools for debugging and troubleshooting MySQL databases. These images use the official MySQL client tools matching specific MySQL server versions.
+
+**Note:** These images are based on official MySQL Docker images and provide the exact MySQL client version specified.
+
+#### mysql-debug-8.0
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.0:latest`
+
+**Client:** MySQL 8.0.43
+
+**Installed Tools:**
+- `mysql` - MySQL client (8.0.43)
+- `mysqldump` - Database backup utility
+- `mysqladmin` - Server administration utility
+- `curl` - HTTP client
+- `wget` - File downloader
+
+**Usage:**
+```bash
+kubectl run mysql-debug-8.0 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.0:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/mysql-debug-8.0.yml
+kubectl exec -it mysql-debug-8.0-pod -- /bin/bash
+```
+
+Or using the deployment script:
+```bash
+./bin/deploy-debug-pod --auto mysql-debug-8.0
+```
+
+Example connection to a MySQL database:
+```bash
+# Inside the debug pod
+mysql -h mysql-service.default.svc.cluster.local -u root -p
+
+# Dump a database
+mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sql
+```
+
+#### mysql-debug-8.4
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.4:latest`
+
+**Client:** MySQL 8.4.5
+
+**Installed Tools:**
+- `mysql` - MySQL client (8.4.5)
+- `mysqldump` - Database backup utility
+- `mysqladmin` - Server administration utility
+- `curl` - HTTP client
+- `wget` - File downloader
+
+**Note:** MySQL 8.4 no longer includes `mysqlshow` as it has been deprecated.
+
+**Usage:**
+```bash
+kubectl run mysql-debug-8.4 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-debug-8.4:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/mysql-debug-8.4.yml
+kubectl exec -it mysql-debug-8.4-pod -- /bin/bash
+```
+
+Or using the deployment script:
+```bash
+./bin/deploy-debug-pod --auto mysql-debug-8.4
 ```
 
 ### postgresql-debug
@@ -356,12 +443,17 @@ Every image is tested before being pushed to ensure quality:
 
 - **Common tests:** Verify bash and basic functionality
 - **Tool-specific tests:** Validate all documented tools work correctly
-- **Version verification:** Ensure correct versions are installed (e.g., PostgreSQL 15.x, Ruby 3.4.x)
+- **Version verification:** Ensure correct versions are installed (e.g., PostgreSQL 15.x, Ruby 3.4.x, MySQL 8.0.x)
 - **Fail-fast:** Build fails immediately if any test fails
 
 Example tests for postgresql-debug-15:
 - PostgreSQL 15.x version verification
 - psql, pg_dump, pg_restore, pg_isready functionality
+- curl and wget availability
+
+Example tests for mysql-debug-8.0:
+- MySQL 8.0.x version verification
+- mysql, mysqldump, mysqladmin functionality
 - curl and wget availability
 
 This testing framework enables safe auto-merging of dependency updates. See [.github/TESTING.md](.github/TESTING.md) for details.
