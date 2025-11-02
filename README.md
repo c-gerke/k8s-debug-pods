@@ -7,9 +7,12 @@ A collection of purpose-built container images and Kubernetes manifests for debu
 ```
 k8s-debug-pods/
 ├── images/              # Container image definitions
+│   ├── mysql-debug/     # Database debugging tools
+│   │   └── Dockerfile
 │   └── network-debug/   # Network debugging tools
 │       └── Dockerfile
 ├── pods/                # Kubernetes pod manifests
+│   ├── mysql-debug.yml
 │   └── network-debug.yml
 ├── bin/                 # Deployment helper scripts
 │   ├── deploy-debug-pod
@@ -49,6 +52,46 @@ Or apply the pod manifest directly:
 ```bash
 kubectl apply -f pods/network-debug.yml
 kubectl exec -it network-debug-pod -- /bin/bash
+```
+
+### mysql-debug
+
+Database client tools for debugging and troubleshooting MySQL, PostgreSQL, and Redis databases.
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-debug:latest`
+
+**Installed Tools:**
+- `mysql` / `mysqldump` / `mysqlshow` - MySQL/MariaDB client and utilities
+- `psql` - PostgreSQL client
+- `redis-cli` - Redis client
+
+**Usage:**
+```bash
+kubectl run mysql-debug --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-debug:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/mysql-debug.yml
+kubectl exec -it mysql-debug-pod -- /bin/bash
+```
+
+**Example Database Connections:**
+```bash
+# Connect to MySQL
+mysql -h mysql-service -u root -p
+
+# Dump a database
+mysqldump -h mysql-service -u root -p database_name > backup.sql
+
+# Connect to PostgreSQL
+psql -h postgres-service -U postgres
+
+# Connect to Redis
+redis-cli -h redis-service
 ```
 
 ### Deployment Scripts
