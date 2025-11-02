@@ -6,15 +6,6 @@
   "pinDigests": true,
   "packageRules": [
     {
-      "matchCategories": [
-        "docker"
-      ],
-      "enabled": true,
-      "managerFilePatterns": [
-        "/^images/.+/Dockerfile$/"
-      ]
-    },
-    {
       "matchDatasources": [
         "docker"
       ],
