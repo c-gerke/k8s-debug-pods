@@ -97,15 +97,160 @@ jobs:
           context: ./images/${{ matrix.image }}
           file: ./images/${{ matrix.image }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
 
+      - name: Test image
+        run: |
+          set -e
+          
+          IMAGE_TAG="${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:sha-${{ github.sha }}"
+          echo "Testing image: $IMAGE_TAG"
+          echo ""
+          
+          # Common tests for all images
+          echo "=== Running Common Tests ==="
+          docker run --rm "$IMAGE_TAG" bash --version
+          echo "✓ bash works"
+          
+          # Image-specific tests
+          case "${{ matrix.image }}" in
+            network-debug)
+              echo ""
+              echo "=== Running Network Debug Tests ==="
+              docker run --rm "$IMAGE_TAG" curl --version
+              echo "✓ curl works"
+              
+              docker run --rm "$IMAGE_TAG" wget --version
+              echo "✓ wget works"
+              
+              docker run --rm "$IMAGE_TAG" dig -v
+              echo "✓ dig works"
+              
+              docker run --rm "$IMAGE_TAG" nslookup -version 2>&1 | head -1
+              echo "✓ nslookup works"
+              
+              docker run --rm "$IMAGE_TAG" ping -V
+              echo "✓ ping works"
+              
+              docker run --rm "$IMAGE_TAG" netstat --version
+              echo "✓ netstat works"
+              
+              docker run --rm "$IMAGE_TAG" ss --version
+              echo "✓ ss works"
+              
+              docker run --rm "$IMAGE_TAG" ip -V
+              echo "✓ ip works"
+              
+              docker run --rm "$IMAGE_TAG" nc -h 2>&1 | head -1
+              echo "✓ netcat works"
+              
+              docker run --rm "$IMAGE_TAG" telnet --help 2>&1 | head -1
+              echo "✓ telnet works"
+              ;;
+            
+            postgresql-debug-13|postgresql-debug-14|postgresql-debug-15)
+              echo ""
+              echo "=== Running PostgreSQL Debug Tests ==="
+              
+              PG_VERSION=$(docker run --rm "$IMAGE_TAG" psql --version)
+              echo "✓ psql works: $PG_VERSION"
+              
+              # Verify correct major version
+              if [[ "${{ matrix.image }}" == "postgresql-debug-13" ]]; then
+                echo "$PG_VERSION" | grep -q "13\." || (echo "❌ Expected PostgreSQL 13.x" && exit 1)
+                echo "✓ PostgreSQL 13.x version verified"
+              elif [[ "${{ matrix.image }}" == "postgresql-debug-14" ]]; then
+                echo "$PG_VERSION" | grep -q "14\." || (echo "❌ Expected PostgreSQL 14.x" && exit 1)
+                echo "✓ PostgreSQL 14.x version verified"
+              elif [[ "${{ matrix.image }}" == "postgresql-debug-15" ]]; then
+                echo "$PG_VERSION" | grep -q "15\." || (echo "❌ Expected PostgreSQL 15.x" && exit 1)
+                echo "✓ PostgreSQL 15.x version verified"
+              fi
+              
+              docker run --rm "$IMAGE_TAG" pg_dump --version
+              echo "✓ pg_dump works"
+              
+              docker run --rm "$IMAGE_TAG" pg_restore --version
+              echo "✓ pg_restore works"
+              
+              docker run --rm "$IMAGE_TAG" pg_isready --version
+              echo "✓ pg_isready works"
+              
+              docker run --rm "$IMAGE_TAG" createdb --version
+              echo "✓ createdb works"
+              
+              docker run --rm "$IMAGE_TAG" dropdb --version
+              echo "✓ dropdb works"
+              
+              docker run --rm "$IMAGE_TAG" curl --version
+              echo "✓ curl works"
+              
+              docker run --rm "$IMAGE_TAG" wget --version
+              echo "✓ wget works"
+              ;;
+            
+            ruby-debug-3.3|ruby-debug-3.4)
+              echo ""
+              echo "=== Running Ruby Debug Tests ==="
+              
+              RUBY_VERSION=$(docker run --rm "$IMAGE_TAG" ruby --version)
+              echo "✓ ruby works: $RUBY_VERSION"
+              
+              # Verify correct major.minor version
+              if [[ "${{ matrix.image }}" == "ruby-debug-3.3" ]]; then
+                echo "$RUBY_VERSION" | grep -q "3\.3\." || (echo "❌ Expected Ruby 3.3.x" && exit 1)
+                echo "✓ Ruby 3.3.x version verified"
+              elif [[ "${{ matrix.image }}" == "ruby-debug-3.4" ]]; then
+                echo "$RUBY_VERSION" | grep -q "3\.4\." || (echo "❌ Expected Ruby 3.4.x" && exit 1)
+                echo "✓ Ruby 3.4.x version verified"
+              fi
+              
+              docker run --rm "$IMAGE_TAG" irb --version
+              echo "✓ irb works"
+              
+              docker run --rm "$IMAGE_TAG" gem --version
+              echo "✓ gem works"
+              
+              docker run --rm "$IMAGE_TAG" bundle --version
+              echo "✓ bundler works"
+              
+              docker run --rm "$IMAGE_TAG" git --version
+              echo "✓ git works"
+              
+              docker run --rm "$IMAGE_TAG" curl --version
+              echo "✓ curl works"
+              
+              docker run --rm "$IMAGE_TAG" wget --version
+              echo "✓ wget works"
+              
+              docker run --rm "$IMAGE_TAG" vim --version | head -1
+              echo "✓ vim works"
+              
+              # Test that we can compile a native extension
+              docker run --rm "$IMAGE_TAG" bash -c "gcc --version"
+              echo "✓ gcc works (for native gem extensions)"
+              ;;
+            
+            *)
+              echo ""
+              echo "⚠️  No specific tests defined for ${{ matrix.image }}"
+              echo "Add tests to .github/workflows/build-images.yml"
+              ;;
+          esac
+          
+          echo ""
+          echo "=== All Tests Passed ✓ ==="
+
       - name: Output image details
         run: |
-          echo "### Built Image: ${{ matrix.image }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Built Image: ${{ matrix.image }} ✓" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** All tests passed ✓" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Tags:**" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

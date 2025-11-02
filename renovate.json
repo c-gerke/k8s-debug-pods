@@ -4,8 +4,11 @@
     "config:recommended"
   ],
   "pinDigests": true,
+  "requireConfig": "required",
+  "dependencyDashboard": true,
   "packageRules": [
     {
+      "description": "Auto-merge Docker base image minor and patch updates after tests pass",
       "matchDatasources": [
         "docker"
       ],
@@ -15,18 +18,25 @@
       ],
       "automerge": true,
       "automergeType": "pr",
-      "automergeStrategy": "squash"
+      "automergeStrategy": "squash",
+      "platformAutomerge": true
     },
     {
+      "description": "Require manual approval for Docker base image major updates",
       "matchDatasources": [
         "docker"
       ],
       "matchUpdateTypes": [
         "major"
       ],
-      "automerge": false
+      "automerge": false,
+      "labels": [
+        "dependencies",
+        "major-update"
+      ]
     },
     {
+      "description": "Auto-merge GitHub Actions minor and patch updates",
       "matchManagers": [
         "github-actions"
       ],
@@ -37,16 +47,22 @@
       ],
       "automerge": true,
       "automergeType": "pr",
-      "automergeStrategy": "squash"
+      "automergeStrategy": "squash",
+      "platformAutomerge": true
     },
     {
+      "description": "Require manual approval for GitHub Actions major updates",
       "matchManagers": [
         "github-actions"
       ],
       "matchUpdateTypes": [
         "major"
       ],
-      "automerge": false
+      "automerge": false,
+      "labels": [
+        "dependencies",
+        "major-update"
+      ]
     }
   ],
   "labels": [

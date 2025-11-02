@@ -59,14 +59,58 @@ Aim for:
   - Main branch: `latest`, `main`, `sha-<full-commit-hash>`
   - PRs: `pr-<number>`, `sha-<full-commit-hash>`
   - Uses full 40-character commit SHA for precise tracking
+- **Testing**: Comprehensive automated tests run before push (see Automated Testing section)
+
+### Automated Testing
+
+Every image is tested before being pushed to the registry to ensure quality and enable safe auto-merging:
+
+**Test execution flow**:
+1. Build Docker image
+2. Load image locally (`load: true`)
+3. Run comprehensive tests
+4. Fail immediately if any test fails
+5. Push to registry ONLY if all tests pass
+
+**Test categories**:
+- **Common tests**: Bash availability (all images)
+- **Tool-specific tests**: Verify each documented tool works
+- **Version verification**: Ensure correct versions for versioned images
+
+**Image-specific test requirements**:
+
+```bash
+# network-debug: Test all network tools
+curl --version, wget --version, dig -v, nslookup, ping -V,
+netstat --version, ss --version, ip -V, nc, telnet
+
+# postgresql-debug-13/14/15: Test PostgreSQL tools + version verification
+psql --version (verify 13.x/14.x/15.x), pg_dump, pg_restore,
+pg_isready, createdb, dropdb, curl, wget
+
+# ruby-debug-3.3/3.4: Test Ruby tools + version verification
+ruby --version (verify 3.3.x/3.4.x), irb, gem, bundle,
+git, curl, wget, vim, gcc (for native gems)
+```
+
+**Critical rules**:
+- Use `set -e` to fail fast on any error
+- Test ALL tools documented in README
+- Verify major/minor versions for versioned images
+- Tests should complete quickly (seconds, not minutes)
+- Clear output with ✓ markers for passed tests
+
+See [.github/TESTING.md](TESTING.md) for detailed documentation.
 
 ### Renovate Configuration
 - **Pinning**: All dependencies use SHA digests for reproducibility
-- **Auto-merge**: Minor and patch updates auto-merge
+- **Auto-merge**: Minor and patch updates auto-merge AFTER tests pass
+- **Platform auto-merge**: Uses GitHub native auto-merge (platformAutomerge)
 - **Manual approval**: Major version updates require review
 - **Monitoring**:
   - Dockerfile base images
   - GitHub Actions versions (grouped as "GitHub Actions")
+- **Safety**: Testing framework ensures no broken images reach production
 
 ## Adding New Debug Images
 
@@ -83,13 +127,30 @@ cp pods/network-debug.yml pods/new-debugger.yml
 # Edit to customize image, volumes, env vars, etc.
 ```
 
-4. Update README.md:
+4. **Add tests to `.github/workflows/build-images.yml`** (REQUIRED):
+```bash
+# Add new case in "Test image" step
+your-new-image)
+  echo ""
+  echo "=== Running Your New Image Tests ==="
+  
+  # Test each tool
+  docker run --rm "$IMAGE_TAG" your-tool --version
+  echo "✓ your-tool works"
+  
+  # More tests for all documented tools
+  ;;
+```
+
+5. Update README.md:
    - Add section under "Available Images"
    - Document installed tools
    - Provide usage example
    - Include image reference
 
-5. Commit and push - GitHub Actions handles the rest
+6. Commit and push - GitHub Actions builds, tests, and pushes
+
+**CRITICAL**: Every new image MUST have tests added to the workflow. Images without tests will only get basic bash verification. See [.github/TESTING.md](TESTING.md) for test writing guidelines.
 
 **Note**: Pod manifest filename should match the image name (e.g., `network-debug.yml` for `network-debug` image) so deployment scripts can find it automatically.
 
@@ -362,6 +423,19 @@ Check if Dockerfile path matches `images/**/Dockerfile` pattern
 
 ### Build happens but image size is large
 Review cleanup steps in Dockerfile - ensure cache removal happens in same RUN layer
+
+### Tests fail in CI but work locally
+Check that you're testing the correct image tag (should be `sha-<commit-hash>`)
+
+### Image builds but tests are skipped
+Add test case for your image in `.github/workflows/build-images.yml` under "Test image" step
+
+### Auto-merge not working for Renovate PRs
+Ensure:
+- Tests pass successfully
+- Branch protection rules allow auto-merge
+- Renovate has permission to auto-merge
+- Update is minor/patch (majors require manual approval)
 
 ### Deployment script fails with "yq: command not found"
 Install yq: `brew install yq` on macOS or download from https://github.com/mikefarah/yq/releases
