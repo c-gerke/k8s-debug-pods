@@ -7,61 +7,21 @@
   "dependencyDashboard": true,
   "packageRules": [
     {
-      "description": "Auto-merge Docker base image minor and patch updates after tests pass",
-      "matchDatasources": [
-        "docker"
-      ],
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash",
-      "platformAutomerge": true
+      "description": "Label Docker major updates",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["major"],
+      "labels": ["major-update"]
     },
     {
-      "description": "Require manual approval for Docker base image major updates",
-      "matchDatasources": [
-        "docker"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "automerge": false,
-      "labels": [
-        "dependencies",
-        "major-update"
-      ]
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
     },
     {
-      "description": "Auto-merge GitHub Actions minor and patch updates",
-      "matchManagers": [
-        "github-actions"
-      ],
-      "groupName": "GitHub Actions",
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
-      "automerge": true,
-      "automergeType": "pr",
-      "automergeStrategy": "squash",
-      "platformAutomerge": true
-    },
-    {
-      "description": "Require manual approval for GitHub Actions major updates",
-      "matchManagers": [
-        "github-actions"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "automerge": false,
-      "labels": [
-        "dependencies",
-        "major-update"
-      ]
+      "description": "Label GitHub Actions major updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "labels": ["major-update"]
     }
   ],
   "labels": [
@@ -70,5 +30,5 @@
   "commitMessagePrefix": "chore:",
   "prConcurrentLimit": 5,
   "prHourlyLimit": 0,
-  "timezone": "America/Los_Angeles"
+  "timezone": "America/New_York"
 }
