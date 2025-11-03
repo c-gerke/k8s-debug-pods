@@ -283,8 +283,8 @@ fi
 if [ -z "$POD_NAME" ]; then
     # Remove -debug suffix if already present to avoid double-debug in name
     POD_NAME="${IMAGE_TYPE}"
-    # Replace forward slashes with hyphens for valid pod names
     POD_NAME="${POD_NAME//\//-}"
+    POD_NAME="${POD_NAME//./-}"
     if [[ ! "$POD_NAME" =~ -debug$ ]]; then
         POD_NAME="${POD_NAME}-debug-pod"
     else
