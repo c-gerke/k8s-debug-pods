@@ -1,10 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "github>c-gerke/renovate-config"
   ],
-  "pinDigests": true,
-  "dependencyDashboard": true,
   "packageRules": [
     {
       "description": "Label Docker major updates",
@@ -24,11 +22,7 @@
       "labels": ["major-update"]
     }
   ],
-  "labels": [
-    "dependencies"
-  ],
   "commitMessagePrefix": "chore:",
   "prConcurrentLimit": 5,
-  "prHourlyLimit": 0,
-  "timezone": "America/New_York"
+  "prHourlyLimit": 0
 }
