@@ -247,7 +247,7 @@ jobs:
               echo "✓ gcc works (for native gem extensions)"
               ;;
             
-            mysql/8.0|mysql/8.4)
+            mysql/8.0|mysql/8.4|mysql/9.5.0)
               echo ""
               echo "=== Testing MySQL Client Tools ==="
               
@@ -284,6 +284,13 @@ jobs:
                   echo "✓ MySQL 8.4 version verified"
                 else
                   echo "❌ Expected MySQL 8.4, got: $MYSQL_VERSION"
+                  exit 1
+                fi
+              elif [[ "$EXPECTED_VERSION" == "mysql/9.5.0" ]]; then
+                if echo "$MYSQL_VERSION" | grep -q "Ver 9.5"; then
+                  echo "✓ MySQL 9.5 version verified"
+                else
+                  echo "❌ Expected MySQL 9.5, got: $MYSQL_VERSION"
                   exit 1
                 fi
               fi
