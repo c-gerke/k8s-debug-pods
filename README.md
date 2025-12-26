@@ -10,7 +10,9 @@ k8s-debug-pods/
 │   ├── mysql/                  # MySQL client tools
 │   │   ├── 8.0/
 │   │   │   └── Dockerfile
-│   │   └── 8.4/
+│   │   ├── 8.4/
+│   │   │   └── Dockerfile
+│   │   └── 9.5.0/
 │   │       └── Dockerfile
 │   ├── network/                # Network debugging tools
 │   │   └── debug/
@@ -25,12 +27,15 @@ k8s-debug-pods/
 │   └── ruby/                   # Ruby development tools
 │       ├── 3.3/
 │       │   └── Dockerfile
-│       └── 3.4/
+│       ├── 3.4/
+│       │   └── Dockerfile
+│       └── 4.0/
 │           └── Dockerfile
 ├── pods/                       # Kubernetes pod manifests
 │   ├── mysql/
 │   │   ├── 8.0.yml
 │   │   ├── 8.4.yml
+│   │   ├── 9.5.0.yml
 │   │   └── percona-8.0.yml
 │   ├── network/
 │   │   └── debug.yml
@@ -41,7 +46,8 @@ k8s-debug-pods/
 │   │   └── percona-13.yml
 │   └── ruby/
 │       ├── 3.3.yml
-│       └── 3.4.yml
+│       ├── 3.4.yml
+│       └── 4.0.yml
 ├── bin/                        # Deployment helper scripts
 │   ├── deploy-debug-pod
 │   └── cleanup-debug-pods
@@ -172,6 +178,49 @@ kubectl exec -it mysql-debug-8.4-pod -- /bin/bash
 Or using the deployment script:
 ```bash
 ./bin/deploy-debug-pod --auto mysql/8.4
+```
+
+#### MySQL 9.5.0
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/mysql-9.5.0:latest`
+
+**Source:** `images/mysql/9.5.0/Dockerfile`
+
+**Client:** MySQL 9.5.0
+
+**Installed Tools:**
+- `mysql` - MySQL client (9.5.0)
+- `mysqldump` - Database backup utility
+- `mysqladmin` - Server administration utility
+- `curl` - HTTP client
+- `wget` - File downloader
+
+**Usage:**
+```bash
+kubectl run mysql-9.5.0 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/mysql-9.5.0:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/mysql/9.5.0.yml
+kubectl exec -it mysql-debug-9.5.0-pod -- /bin/bash
+```
+
+Or using the deployment script:
+```bash
+./bin/deploy-debug-pod --auto mysql/9.5.0
+```
+
+Example connection to a MySQL database:
+```bash
+# Inside the debug pod
+mysql -h mysql-service.default.svc.cluster.local -u root -p
+
+# Dump a database
+mysqldump -h mysql-service.default.svc.cluster.local -u root -p mydb > backup.sql
 ```
 
 #### MySQL Percona 8.0
@@ -461,6 +510,42 @@ kubectl exec -it ruby-3.4-pod -- /bin/bash
 Or using the deployment script:
 ```bash
 ./bin/deploy-debug-pod --auto ruby-3.4
+```
+
+#### ruby-4.0
+
+**Image:** `ghcr.io/c-gerke/k8s-debug-pods/ruby-4.0:latest`
+
+**Ruby Version:** 4.0.x
+
+**Installed Tools:**
+- `ruby` - Ruby interpreter (4.0.x)
+- `irb` - Interactive Ruby shell
+- `gem` - Ruby package manager
+- `bundler` - Ruby dependency manager
+- `git` - Version control (for fetching dependencies)
+- `curl` / `wget` - HTTP clients
+- `vim` - Text editor
+- `build-essential` - C compiler and build tools (for native gem extensions)
+- Development libraries: `libssl-dev`, `libreadline-dev`, `zlib1g-dev`
+
+**Usage:**
+```bash
+kubectl run ruby-4.0 --rm -it \
+  --image=ghcr.io/c-gerke/k8s-debug-pods/ruby-4.0:latest \
+  --restart=Never \
+  -- /bin/bash
+```
+
+Or apply the pod manifest directly:
+```bash
+kubectl apply -f pods/ruby/4.0.yml
+kubectl exec -it ruby-4.0-pod -- /bin/bash
+```
+
+Or using the deployment script:
+```bash
+./bin/deploy-debug-pod --auto ruby/4.0
 ```
 
 ### Deployment Scripts

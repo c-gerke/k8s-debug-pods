@@ -98,7 +98,7 @@ The deployment script intelligently calculates resource allocations:
 
 Each pod type defines its own minimum resources in its manifest:
 - `network/debug`: 32Mi (lightweight debugging)
-- `mysql/8.0`: 128Mi (database tools)
+- `mysql/8.0`, `mysql/8.4`, `mysql/9.5.0`: 128Mi (database tools)
 - `postgresql/15`: 128Mi (database tools)
 - `ruby/3.3`, `ruby/3.4`, `ruby/4.0`: 128Mi (Rails debugging)
 
@@ -189,7 +189,7 @@ The script automatically:
 ### Multiple Contexts
 ```bash
 # Deploy to staging
-./bin/deploy-debug-pod -c staging -n my-app mysql/8.0
+./bin/deploy-debug-pod -c staging -n my-app mysql/9.5.0
 
 # Deploy to production
 ./bin/deploy-debug-pod -c production -n my-app ruby/4.0

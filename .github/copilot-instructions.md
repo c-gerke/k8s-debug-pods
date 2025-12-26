@@ -92,8 +92,8 @@ pg_isready, createdb, dropdb, curl, wget
 ruby --version (verify 3.3.x/3.4.x/4.0.x), irb, gem, bundle,
 git, curl, wget, vim, gcc (for native gems)
 
-# mysql/8.0, mysql/8.4: Test MySQL tools + version verification
-mysql --version (verify 8.0.x/8.4.x), mysqldump, mysqladmin, curl, wget
+# mysql/8.0, mysql/8.4, mysql/9.5.0: Test MySQL tools + version verification
+mysql --version (verify 8.0.x/8.4.x/9.5.x), mysqldump, mysqladmin, curl, wget
 ```
 
 **Critical rules**:
@@ -440,6 +440,7 @@ Format: `ghcr.io/c-gerke/k8s-pods/<category>-<version>:latest`
 
 Examples:
 - `ghcr.io/c-gerke/k8s-pods/mysql-8.0:latest`
+- `ghcr.io/c-gerke/k8s-pods/mysql-9.5.0:latest`
 - `ghcr.io/c-gerke/k8s-pods/postgresql-15:latest`
 - `ghcr.io/c-gerke/k8s-pods/ruby-3.4:latest`
 - `ghcr.io/c-gerke/k8s-pods/ruby-4.0:latest`

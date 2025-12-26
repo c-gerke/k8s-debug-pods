@@ -61,7 +61,7 @@ Tests Ruby development tools and verifies correct version:
 
 **Version Verification:** Tests ensure the correct major.minor version is installed (e.g., ruby/4.0 must have Ruby 4.0.x)
 
-### mysql/8.0, mysql/8.4
+### mysql/8.0, mysql/8.4, mysql/9.5.0
 
 Tests MySQL client tools and verifies correct version:
 
@@ -71,7 +71,7 @@ Tests MySQL client tools and verifies correct version:
 - `curl` - HTTP client
 - `wget` - File downloader
 
-**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., mysql/8.0 must have MySQL 8.0.x)
+**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., mysql/9.5.0 must have MySQL 9.5.x)
 
 ## Adding Tests for New Images
 
