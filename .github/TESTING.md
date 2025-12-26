@@ -45,7 +45,7 @@ Tests PostgreSQL client tools and verifies correct version:
 
 **Version Verification:** Tests ensure the correct major version is installed (e.g., postgresql/15 must have PostgreSQL 15.x)
 
-### ruby/3.3, ruby/3.4
+### ruby/3.3, ruby/3.4, ruby/4.0
 
 Tests Ruby development tools and verifies correct version:
 
@@ -59,7 +59,7 @@ Tests Ruby development tools and verifies correct version:
 - `vim` - Text editor
 - `gcc` - C compiler (for native gem extensions)
 
-**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., ruby/3.4 must have Ruby 3.4.x)
+**Version Verification:** Tests ensure the correct major.minor version is installed (e.g., ruby/4.0 must have Ruby 4.0.x)
 
 ### mysql/8.0, mysql/8.4
 

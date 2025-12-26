@@ -30,7 +30,7 @@ Deploy a debug pod with intelligent resource allocation based on namespace quota
 
 **Override Resources:**
 ```bash
-./bin/deploy-debug-pod -m 512Mi -e 512Mi ruby/3.4
+./bin/deploy-debug-pod -m 512Mi -e 512Mi ruby/4.0
 ```
 
 **Custom TTL (Time-to-Live):**
@@ -100,7 +100,7 @@ Each pod type defines its own minimum resources in its manifest:
 - `network/debug`: 32Mi (lightweight debugging)
 - `mysql/8.0`: 128Mi (database tools)
 - `postgresql/15`: 128Mi (database tools)
-- `ruby/3.4`: 128Mi (Rails debugging)
+- `ruby/3.3`, `ruby/3.4`, `ruby/4.0`: 128Mi (Rails debugging)
 
 **Example allocation with network/debug (32Mi minimum) and 2Gi namespace quota:**
 - Manifest minimum: 32Mi
@@ -148,7 +148,7 @@ When a pod reaches its deadline, Kubernetes marks it as `Failed` and it will be 
 ./bin/deploy-debug-pod --ttl 28800 postgresql/15
 
 # No TTL - pod runs until manually deleted
-./bin/deploy-debug-pod --ttl 0 ruby/3.4
+./bin/deploy-debug-pod --ttl 0 ruby/4.0
 ```
 
 ## Adding New Pod Types
@@ -192,7 +192,7 @@ The script automatically:
 ./bin/deploy-debug-pod -c staging -n my-app mysql/8.0
 
 # Deploy to production
-./bin/deploy-debug-pod -c production -n my-app ruby/3.4
+./bin/deploy-debug-pod -c production -n my-app ruby/4.0
 ```
 
 ### Using Percona Images

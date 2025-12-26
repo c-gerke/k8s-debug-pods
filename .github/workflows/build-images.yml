@@ -202,7 +202,7 @@ jobs:
               echo "✓ wget works"
               ;;
             
-            ruby/3.3|ruby/3.4)
+            ruby/3.3|ruby/3.4|ruby/4.0)
               echo ""
               echo "=== Running Ruby Debug Tests ==="
               
@@ -216,6 +216,9 @@ jobs:
               elif [[ "${{ matrix.image }}" == "ruby/3.4" ]]; then
                 echo "$RUBY_VERSION" | grep -q "3\.4\." || (echo "❌ Expected Ruby 3.4.x" && exit 1)
                 echo "✓ Ruby 3.4.x version verified"
+              elif [[ "${{ matrix.image }}" == "ruby/4.0" ]]; then
+                echo "$RUBY_VERSION" | grep -q "4\.0\." || (echo "❌ Expected Ruby 4.0.x" && exit 1)
+                echo "✓ Ruby 4.0.x version verified"
               fi
               
               docker run --rm "$IMAGE_TAG" irb --version
