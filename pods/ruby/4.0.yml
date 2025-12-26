@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ruby-debug-4.0-pod
+  labels:
+    app: debug-pod
+    type: ruby-debug-4.0
+spec:
+  containers:
+  - name: debug-container
+    image: ghcr.io/c-gerke/k8s-debug-pods/ruby-4.0:latest
+    command: ['sleep', '3600']
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+        ephemeral-storage: "128Mi"
+      limits:
+        memory: "128Mi"
+        ephemeral-storage: "128Mi"
+  restartPolicy: Never
+

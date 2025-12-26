@@ -7,7 +7,7 @@ This repository maintains purpose-built container images and Kubernetes pod mani
 ## Architecture & Design Principles
 
 ### Image Structure
-- **Base image**: Always use `debian:bookworm-slim` for consistency and small footprint
+- **Base image**: Use `debian:bookworm-slim` for consistency and small footprint. Language-specific images (Ruby, MySQL) use official base images (e.g., `ruby:4.0-slim`, `mysql:8.0-debian`)
 - **Organization**: Images organized as `images/<category>/<version>/Dockerfile` (e.g., `images/mysql/8.0/Dockerfile`)
 - **Registry**: All images push to `ghcr.io/c-gerke/k8s-pods/<category>-<version>:latest`
 - **Platform**: Build for `linux/amd64` only (no arm64)
@@ -88,8 +88,8 @@ netstat --version, ss --version, ip -V, nc, telnet
 psql --version (verify 13.x/14.x/15.x), pg_dump, pg_restore,
 pg_isready, createdb, dropdb, curl, wget
 
-# ruby/3.3, ruby/3.4: Test Ruby tools + version verification
-ruby --version (verify 3.3.x/3.4.x), irb, gem, bundle,
+# ruby/3.3, ruby/3.4, ruby/4.0: Test Ruby tools + version verification
+ruby --version (verify 3.3.x/3.4.x/4.0.x), irb, gem, bundle,
 git, curl, wget, vim, gcc (for native gems)
 
 # mysql/8.0, mysql/8.4: Test MySQL tools + version verification
@@ -442,6 +442,7 @@ Examples:
 - `ghcr.io/c-gerke/k8s-pods/mysql-8.0:latest`
 - `ghcr.io/c-gerke/k8s-pods/postgresql-15:latest`
 - `ghcr.io/c-gerke/k8s-pods/ruby-3.4:latest`
+- `ghcr.io/c-gerke/k8s-pods/ruby-4.0:latest`
 - `ghcr.io/c-gerke/k8s-pods/network-debug:latest`
 
 Keep names:
