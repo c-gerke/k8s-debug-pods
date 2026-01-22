@@ -1,4 +1,4 @@
-FROM mysql:8.4.7-oracle@sha256:0426ec38c7a10aa45ba383887df7878f74ee70e2fd589c7b69207f3577901903
+FROM mysql:9.6.0-oracle@sha256:c5467c2e0e1b0363d9b67633dff98d3e0ab5be2fa70f90e12fc4b63dc79a5f73
 
 RUN microdnf install -y \
     curl \
