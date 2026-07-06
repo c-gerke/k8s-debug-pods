@@ -7,4 +7,3 @@ RUN microdnf install -y \
     microdnf clean all
 
 CMD ["/bin/bash"]
-

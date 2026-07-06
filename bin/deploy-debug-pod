@@ -294,7 +294,6 @@ if [ -z "$IMAGE_TYPE" ]; then
     echo ""
     show_usage
 fi
-
 if [ -z "$CONTEXT" ]; then
     CONTEXT=$(kubectl config current-context)
 fi
@@ -428,4 +427,3 @@ if [ "$AUTO_EXEC" = true ]; then
     echo "Executing into pod..."
     kubectl --context="$CONTEXT" -n "$NAMESPACE" exec -it "$POD_NAME" -- /bin/bash
 fi
-

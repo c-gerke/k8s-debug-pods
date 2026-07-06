@@ -21,4 +21,3 @@ RUN apt-get update && \
            /var/cache/apt/*.bin
 
 CMD ["/bin/bash"]
-

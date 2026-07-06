@@ -20,7 +20,7 @@ Deploy a debug pod with intelligent resource allocation based on namespace quota
 
 **With Context and Namespace:**
 ```bash
-./bin/deploy-debug-pod -c wc-beta-px -n example-rails-app-pr1110 mysql/8.0
+./bin/deploy-debug-pod -c beta-cluster -n example-app mysql/8.0
 ```
 
 **Auto-exec into Pod:**
@@ -215,4 +215,3 @@ The script automatically:
 # Remove all debug pods
 ./bin/cleanup-debug-pods -n my-app --all
 ```
-

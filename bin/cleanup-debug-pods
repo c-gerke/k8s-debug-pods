@@ -74,7 +74,6 @@ done
 if [ -z "$CONTEXT" ]; then
     CONTEXT=$(kubectl config current-context)
 fi
-
 if [ -z "$NAMESPACE" ]; then
     NAMESPACE=$(kubectl config view --minify --output 'jsonpath={..namespace}')
     if [ -z "$NAMESPACE" ]; then
@@ -131,4 +130,3 @@ else
         echo "Use --all to delete all debug pods or --name <pod-name> to delete a specific pod"
     fi
 fi
-
