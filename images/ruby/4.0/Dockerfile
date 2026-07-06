@@ -3,7 +3,7 @@ FROM ruby:4.0-slim@sha256:3d2d07ec3c267107a2a253327c108c1e5b74ea84cfa5ab125f127b
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
-    watch \
+    procps \
     curl \
     wget \
     git \

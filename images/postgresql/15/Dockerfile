@@ -3,7 +3,7 @@ FROM debian:bookworm-slim@sha256:60eac759739651111db372c07be67863818726f754804b8
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
-    watch \
+    procps \
     curl \
     wget \
     gnupg \

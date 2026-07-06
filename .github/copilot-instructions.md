@@ -424,7 +424,7 @@ kubectl delete pod <pod-name>
 - `netcat-traditional` - nc utility
 
 ### System Tools
-- `procps` - ps, top
+- `procps` - ps, top, watch
 - `htop` - interactive process viewer
 - `strace` - system call tracer
 - `lsof` - list open files
@@ -523,4 +523,3 @@ This approach ensures:
 - **Scalability**: Adding new pod types is just creating a new YAML file
 - **Flexibility**: Each pod type can have unique volumes, commands, security context
 - **Clarity**: Pod configuration is visible and version-controlled in YAML
-
