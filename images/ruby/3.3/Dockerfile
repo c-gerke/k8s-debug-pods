@@ -3,6 +3,7 @@ FROM ruby:3.3-slim@sha256:5340ab7cd6317c45a0a7e2818857b930ff61ee92ffd661dec72738
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
+    watch \
     curl \
     wget \
     git \

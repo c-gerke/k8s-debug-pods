@@ -4,6 +4,7 @@ RUN rm -f /etc/apt/sources.list.d/mysql.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
+    watch \
     curl \
     wget && \
     apt-get clean && \
