@@ -9,6 +9,7 @@ spec:
   containers:
   - name: debug-container
     image: ghcr.io/c-gerke/k8s-debug-pods/ruby-3.3:latest
+    imagePullPolicy: Always
     command: ['sleep', '3600']
     resources:
       requests:

@@ -9,6 +9,7 @@ spec:
   containers:
   - name: debug-container
     image: percona/percona-postgresql-operator:2.5.0-ppg13-postgres
+    imagePullPolicy: Always
     command: ['sleep', '3600']
     resources:
       requests:
@@ -19,4 +20,3 @@ spec:
         memory: "128Mi"
         ephemeral-storage: "128Mi"
   restartPolicy: Never
-

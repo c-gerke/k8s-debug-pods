@@ -215,4 +215,3 @@ The script automatically:
 # Remove all debug pods
 ./bin/cleanup-debug-pods -n my-app --all
 ```
-

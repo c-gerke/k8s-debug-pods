@@ -9,6 +9,7 @@ spec:
   containers:
   - name: debug-container
     image: ghcr.io/c-gerke/k8s-debug-pods/mysql-8.4:latest
+    imagePullPolicy: Always
     command: ['sleep', '3600']
     resources:
       requests:
@@ -19,4 +20,3 @@ spec:
         memory: "128Mi"
         ephemeral-storage: "128Mi"
   restartPolicy: Never
-

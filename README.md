@@ -612,6 +612,7 @@ See [bin/README.md](bin/README.md) for detailed usage and examples.
 5. Update the manifest to reference the correct image:
    ```yaml
    image: ghcr.io/c-gerke/k8s-debug-pods/category-version:latest
+   imagePullPolicy: Always
    # Example: ghcr.io/c-gerke/k8s-debug-pods/redis-7.0:latest
    ```
 
@@ -643,6 +644,7 @@ You can also create pod manifests that use external images directly (e.g., Perco
 2. Reference the external image directly:
    ```yaml
    image: percona:8.0.36-28@sha256:1128d56e64711ed65cb0c57041048967ee5875a2167d708d327885fd1f995fa0
+   imagePullPolicy: Always
    # Use SHA pinning for production images
    ```
 
