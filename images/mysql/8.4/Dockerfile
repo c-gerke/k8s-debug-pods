@@ -1,4 +1,4 @@
-FROM mysql:8.4.11-oracle@sha256:24989179f58856db763f418010c1169fecc944e3ec1ea7e921572d83eb070f70
+FROM mysql:8.4.11-oracle@sha256:0f51e63e537a1f176423fa03ef559aabe6fa4372a53160a44bc7e75da7d15364
 
 RUN microdnf install -y \
     procps-ng \
