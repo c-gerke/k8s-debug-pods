@@ -1,4 +1,4 @@
-FROM ruby:4.0-slim@sha256:3251898a6b7ff1275a0dc279d401889c6c743c1fb3292fa3ce1a2e12fc2cd31d
+FROM ruby:4.0-slim@sha256:5178b4bee091679699b8957820ef09fb0a823dc5f069d4c8a7a7bcf34a3ad299
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
